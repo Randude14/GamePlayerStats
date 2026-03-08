@@ -1,0 +1,27 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "npm: start",
+      "type": "shell",
+      "command": "npm start",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "docker-compose up",
+      "type": "shell",
+      "command": "docker-compose up --build",
+      "group": "build",
+      "presentation": {
+        "reveal": "always"
+      }
+    }
+  ]
+}
