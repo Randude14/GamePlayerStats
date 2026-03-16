@@ -1,6 +1,7 @@
 const express = require('express');
 const mysql = require('mysql2/promise');
 const dotenv = require('dotenv');
+const knex = require('knex')(require('./knexfile'));
 
 dotenv.config();
 
@@ -42,18 +43,35 @@ async function waitForDb(retries = 10, delay = 1000) {
   throw new Error('Unable to connect to database after multiple attempts');
 }
 
-// knex instance for migrations
-const knex = require('knex')(require('./knexfile'));
+
 
 app.get('/players', async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT * FROM players');
-    res.json(rows);
+    return res.json(rows);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'Database error' });
+  }
+});
+
+app.post('/players/add', async(req, res) => {
+  try {
+    await knex('players').insert({
+      name: 'JohnDoe',
+      email: 'johndoe@gmail.com',
+      username: 'JohnDoesNuts',
+      created_at: knex.fn.now()
+    })
+
+    const created = await pool.query('SELECT * FROM players WHERE players.name = ?', ['John Doe'])
+
+    return res.json(created);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Database error' });
   }
-});
+})
 
 const PORT = process.env.PORT || 3000;
 
