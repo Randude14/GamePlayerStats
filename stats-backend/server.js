@@ -24,7 +24,7 @@ const app = express();
     });
 
     const playerController = new PlayerController(pool, knex);
-    playerController.registerRoutes(app);
+    playerController.registerRoutes(app, 'api');
 
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
