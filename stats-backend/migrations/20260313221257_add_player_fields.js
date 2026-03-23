@@ -1,18 +1,36 @@
+exports.up = async function(knex) {
+    await knex.schema.alterTable("players", table => {
+        table.string("email");
+        table.string("username");
+    });
 
-exports.up = function(knex) {
-    return knex.schema.alterTable("players", table => {
+    await knex("players").update({
+        email: "johndoe@email.com",
+        username: "johndoe"
+    });
+
+    await knex.schema.alterTable("players", table => {
+        table.string("email").notNullable().alter();
+        table.string("username").notNullable().alter();
+
+        table.unique(["email"]);
+        table.unique(["username"]);
+
+        table.timestamps(true, true);
+    });
+
+    await knex.schema.alterTable("players", table => {
         table.dropColumn("score");
-        table.string("email").unique().notNullable();
-        table.string("username").unique().notNullable();
-        table.timestamp("created_at").defaultTo(knex.fn.now()).notNullable();
     });
 };
 
 exports.down = function(knex) {
     return knex.schema.alterTable("players", table => {
         table.dropColumn("created_at");
+        table.dropColumn("updated_at");
         table.dropColumn("username");
         table.dropColumn("email");
+
         table.integer("score");
     });
 };

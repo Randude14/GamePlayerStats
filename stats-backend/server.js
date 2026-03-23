@@ -23,7 +23,7 @@ const app = express();
       res.send('GamePlayerStats API is running');
     });
 
-    const playerController = new PlayerController(pool, knex);
+    const playerController = new PlayerController(knex);
     playerController.registerRoutes(app, 'api');
 
     const PORT = process.env.PORT || 3000;
