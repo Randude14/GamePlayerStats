@@ -8,18 +8,19 @@ class PlayerController {
 
     constructor(_knex) {
         this.knex = _knex;
+        this.PLAYER_TABLE = 'players';
     }
 
     registerRoutes(app) {
         app.get('/players', 
             this.getAllPlayers.bind(this));
         app.post('/players/auth', [
-            check('email', 'Please include your email.'),
-            check('password', 'Please include your password.')
+            check('email', 'Please include your email.').notEmpty(),
+            check('password', 'Please include your password.').notEmpty()
         ], this.playerAuth.bind(this)), 
         app.post('/players/create', [
-            check('name', 'Please include your name.'),
-            check('email', 'Please include your email.'),
+            check('name', 'Please include your name.').notEmpty(),
+            check('email', 'Please include your email.').notEmpty(),
             check('username', 'Please include a username of at least 6 characters.').isLength({ min: 6}),
             check('password', 'Please include a password of at least 8 characters.').isLength({ min: 8 }),
         ], this.createPlayer.bind(this));
@@ -31,7 +32,7 @@ class PlayerController {
     }
 
     async getAllPlayers(req, res) {
-        const rows = await this.knex('players');
+        const rows = await this.knex(this.PLAYER_TABLE);
         res.json(rows);
     }
 
@@ -45,13 +46,13 @@ class PlayerController {
 
         const { name, email, username, password } = req.body;
 
-        let playerFound = await this.knex('players').where({ email: email }).first();
+        let playerFound = await this.knex(this.PLAYER_TABLE).where({ email: email }).first();
 
         if(playerFound) {
             return res.status(400).json({ msg: 'There is a player already with that email.'});
         }
 
-        playerFound = await this.knex('players').where({ username: username }).first();
+        playerFound = await this.knex(this.PLAYER_TABLE).where({ username: username }).first();
 
         if(playerFound) {
             return res.status(400).json({ msg: 'There is a player already with that username.'});
@@ -62,7 +63,7 @@ class PlayerController {
             const salt = await bcrypt.genSalt(10);
             const password_hash = await bcrypt.hash(password, salt);
 
-            await this.knex('players').insert({
+            await this.knex(this.PLAYER_TABLE).insert({
                 name: name,
                 email: email,
                 username: username,
@@ -70,7 +71,7 @@ class PlayerController {
                 created_at: this.knex.fn.now()
             })
 
-            const playerCreated = this.knex('players').where({ username: username }).first();
+            const playerCreated = this.knex(this.PLAYER_TABLE).where({ username: username }).first();
 
             const payload = {
                 player: {
@@ -104,7 +105,7 @@ class PlayerController {
         const password = req.body.password;
 
         try {
-            const playerFound = await this.knex('players').where({ email: email}).first();
+            const playerFound = await this.knex(this.PLAYER_TABLE).where({ email: email}).first();
 
             if(!playerFound) {
                 return res.status(401).json({ msg: 'Invalid Credentials.' })
@@ -143,13 +144,13 @@ class PlayerController {
         const playerId = req.player.id;
 
         try {
-            const player = await this.knex('players').where({ id: playerId }).delete();
+            const player = await this.knex(this.PLAYER_TABLE).where({ id: playerId }).delete();
 
             if(! player || player.length === 0) {
                 return res.status(401).json({ msg: "Could not find user."});
             }
 
-            await this.knex('players').where({ id: playerId }).delete();
+            await this.knex(this.PLAYER_TABLE).where({ id: playerId }).delete();
 
             return res.json({msg: 'Player removed.'});
         } catch (err) {
@@ -169,13 +170,13 @@ class PlayerController {
         const playerName = req.body.username;
 
         try {
-            const playerFound = await this.knex('players').where({ username: playerName }).first();
+            const playerFound = await this.knex(this.PLAYER_TABLE).where({ username: playerName }).first();
 
             if(playerFound) {
                 return res.status(401).json({ msg: 'There is a player already with that username.' })
             }
 
-            await this.knex('players')
+            await this.knex(this.PLAYER_TABLE)
                 .where({ id: playerId })
                 .update({ username: playerName });
 

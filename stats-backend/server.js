@@ -2,7 +2,8 @@ const express = require('express');
 const dotenv = require('dotenv');
 const connecToDB = require('./config/db');
 const knex = require('knex')(require('./knexfile'));
-const PlayerController = require('./controllers/PlayerController')
+const PlayerController = require('./controllers/PlayerController');
+const GameController = require('./controllers/GameController');
 dotenv.config();
 
 
@@ -23,8 +24,12 @@ const app = express();
       res.send('GamePlayerStats API is running');
     });
 
+    // Create controllers and register their routes
     const playerController = new PlayerController(knex);
-    playerController.registerRoutes(app, 'api');
+    playerController.registerRoutes(app);
+
+    const gameController = new GameController(knex);
+    gameController.registerRoutes(app);
 
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
