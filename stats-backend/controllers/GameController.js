@@ -9,7 +9,7 @@ class GameController {
     }
 
     registerRoutes(app) {
-        app.get('/games', this.getAllGames.bind(this));
+        app.get('/games/all', this.getAllGames.bind(this));
 
         app.get('/games/search', [
             check('title', 'Please include the title.').notEmpty(),
