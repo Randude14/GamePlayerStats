@@ -1,5 +1,6 @@
 const { check, validationResult } = require('express-validator');
 const config = require('config');
+const checkDate = require('../middleware/checkDate');
 
 class GameController {
 
@@ -13,19 +14,19 @@ class GameController {
 
         app.get('/games/search', [
             check('title', 'Please include the title.').notEmpty(),
-            check('release', 'Please include the release date of the game.').notEmpty()
+            checkDate('release')
         ], this.getGameBy.bind(this));
 
         app.put('/games', [
             check('title', 'Please include the title.').notEmpty(),
             check('developer', 'Please include the deveoper.').notEmpty(),
             check('publisher', 'Please include the publisher.').notEmpty(),
-            check('release', 'Please include the release date.').notEmpty()
+            checkDate('release')
         ], this.createGame.bind(this));
 
         app.delete('/games', [
             check('title', 'Please include the title.').notEmpty(),
-            check('release', 'Please include the release date of the game to delete.').notEmpty()
+            checkDate('release')
         ], this.removeGame.bind(this));
     }
 
@@ -42,10 +43,6 @@ class GameController {
         }
 
         const {title, release} = req.body;
-
-        if(this.validateDate(release)) {
-            return res.status(400).json({ error: "Invalid date format (use YYYY-MM-DD)" });
-        }
 
         const game = await this.knex(this.GAME_TABLE)
                                 .where({
@@ -68,10 +65,6 @@ class GameController {
         }
 
         const {title, developer, publisher, release} = req.body;
-
-        if(this.validateDate(release)) {
-            return res.status(400).json({ error: "Invalid date format (use YYYY-MM-DD)" });
-        }
 
         const gameCheck = await this.knex(this.GAME_TABLE)
                                 .where({
@@ -109,10 +102,6 @@ class GameController {
 
         const {title, release} = req.body;
 
-        if(this.validateDate(release)) {
-            return res.status(400).json({ error: "Invalid date format (use YYYY-MM-DD)" });
-        }
-
         const gameCheck = await this.knex(this.GAME_TABLE)
                                 .where({
                                     title: title,
@@ -130,12 +119,6 @@ class GameController {
                                 }).delete();
 
         return res.status(201).json({ msg: 'Game deleted.' })
-    }
-
-
-    validateDate(date) {
-        // Validate the release date, MySQL epects YYY-MM-DD
-        return !date || !/^\d{4}-\d{2}-\d{2}$/.test(date);
     }
 }
 

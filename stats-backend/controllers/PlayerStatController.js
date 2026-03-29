@@ -1,5 +1,6 @@
-const { check, validationResult } = require('express-validator');
-const config = require('config');
+const { check } = require('express-validator');
+const checkDate = require('../middleware/checkDate');
+const checkNotNegative = require('../middleware/checkNotNegative');
 
 class PlayerStatController {
 
@@ -12,12 +13,12 @@ class PlayerStatController {
         app.get('/player_stats/all', this.getAllStats.bind(this));
 
         app.post('/player_stats/add/:player_id/:game_id', [
-            check('date_purchased').notEmpty(),
-            check('hours_played').notEmpty()
+            checkDate('date_purchased'),
+            checkNotNegative('hours_played')
         ], this.addPlayerStat.bind(this));
 
         app.patch('/player_stats/set/:player_id/:game_id',
-            check('hours_played').notEmpty()
+            checkNotNegative('hours_played')
         , this.setPlayerStat.bind(this));
 
         app.get('/player_stats/search/:player_id/:game_id', this.getGameStatsFor.bind(this));
@@ -41,14 +42,6 @@ class PlayerStatController {
         }
 
         const {date_purchased, hours_played} = req.body;
-
-        if(this.validateDate(date_purchased)) {
-            return res.status(400).json({ error: "Invalid date format (use YYYY-MM-DD)" });
-        }
-
-        if(hours_played < 0) {
-            return res.status(400).json({ error: 'The hours played field cannot be negative.' })
-        }
 
         const playerStatCheck = await this.knex(this.PLAYER_STAT_TABLE)
                                     .where({
@@ -92,10 +85,6 @@ class PlayerStatController {
         }
 
         const { hours_played } = req.body;
-
-        if(hours_played < 0) {
-            return res.status(400).json({ error: 'The hours played field cannot be negative.' })
-        }
 
         const playerStatCheck = await this.knex(this.PLAYER_STAT_TABLE)
                                     .where({
@@ -184,11 +173,6 @@ class PlayerStatController {
                                     }).delete();
 
         return res.json({ msg: 'Record deleted.' });
-    }
-
-    validateDate(date) {
-        // Validate the release date, MySQL epects YYY-MM-DD
-        return !date || !/^\d{4}-\d{2}-\d{2}$/.test(date);
     }
 }
 
