@@ -2,6 +2,7 @@ const express = require('express');
 const dotenv = require('dotenv');
 const connecToDB = require('./config/db');
 const knex = require('knex')(require('./knexfile'));
+const PlayerService = require('./services/PlayerService');
 const PlayerController = require('./controllers/PlayerController');
 const GameController = require('./controllers/GameController');
 const PlayerStatController = require('./controllers/PlayerStatController');
@@ -25,8 +26,10 @@ const app = express();
           res.send('GamePlayerStats API is running');
         });
 
+        const playerService = new PlayerService(knex);
+
         // Create controllers and register their routes
-        const playerController = new PlayerController(knex);
+        const playerController = new PlayerController(playerService);
         playerController.registerRoutes(app);
 
         const gameController = new GameController(knex);
