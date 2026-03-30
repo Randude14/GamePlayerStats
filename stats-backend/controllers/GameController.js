@@ -1,124 +1,73 @@
-const { check, validationResult } = require('express-validator');
-const config = require('config');
+const { check } = require('express-validator');
+const validateErrors = require('../middleware/validateErrors');
 const checkDate = require('../middleware/checkDate');
+const catchAsync = require('../middleware/catchAsync');
+
 
 class GameController {
 
-    constructor(_knex) {
-        this.knex = _knex;
-        this.GAME_TABLE = "games";
+    constructor(_gameService) {
+        this.gameService = _gameService;
     }
 
     registerRoutes(app) {
-        app.get('/games/all', this.getAllGames.bind(this));
+        app.get('/games', this.catchAsyncRoute(this.getAllGames));
 
-        app.get('/games/search', [
-            check('title', 'Please include the title.').notEmpty(),
-            checkDate('release')
-        ], this.getGameBy.bind(this));
+        app.get('/games/id/:game_id', this.catchAsyncRoute(this.getGameById));
+
+        app.get('/games/search/', this.catchAsyncRoute(this.getGameByTitleRelease));
 
         app.put('/games', [
             check('title', 'Please include the title.').notEmpty(),
             check('developer', 'Please include the deveoper.').notEmpty(),
             check('publisher', 'Please include the publisher.').notEmpty(),
             checkDate('release')
-        ], this.createGame.bind(this));
+        ], validateErrors(), this.catchAsyncRoute(this.createGame));
 
-        app.delete('/games', [
-            check('title', 'Please include the title.').notEmpty(),
-            checkDate('release')
-        ], this.removeGame.bind(this));
+        app.patch('/games/:game_id', [
+            checkDate('release', false)
+        ], validateErrors(), this.catchAsyncRoute(this.updateGame));
+
+        app.delete('/games/:game_id', this.catchAsyncRoute(this.removeGame));
+    }
+
+    catchAsyncRoute(_func) {
+        return catchAsync(_func.bind(this));
     }
 
     async getAllGames(req, res) {
-        const rows = await this.knex(this.GAME_TABLE);
-        res.json(rows);
+        const games = await this.gameService.getAllGames();
+        res.json(games);
     }
 
-    async getGameBy(req, res) {
-        const errors = validationResult(req);
+    async getGameById(req, res) {
+        const game_id = req.params.game_id;
+        const game = await this.gameService.getById(game_id);
+        return res.status(200).json(game);
+    }
 
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
-
-        const {title, release} = req.body;
-
-        const game = await this.knex(this.GAME_TABLE)
-                                .where({
-                                    title: title,
-                                    release: release
-                                }).first();
-
-        if(!game) {
-            return res.status(401).json({ error: 'Game does not exist for passed request body.' })
-        }
-
-        return res.status(201).json(game);
+    async getGameByTitleRelease(req, res) {
+        const { title, release } = req.body;
+        const game = await this.gameService.getByTitleRelease(title, release);
+        return res.status(200).json(game);
     }
 
     async createGame(req, res) {
-        const errors = validationResult(req);
-
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
-
-        const {title, developer, publisher, release} = req.body;
-
-        const gameCheck = await this.knex(this.GAME_TABLE)
-                                .where({
-                                    title: title,
-                                    release: release
-                                }).first();
-
-        if(gameCheck) {
-            return res.status(409).json({ msg: 'This game already exists.' })
-        }
-
-        await this.knex(this.GAME_TABLE).insert({
-            title: title,
-            developer: developer,
-            publisher: publisher,
-            release: release,
-            created_at: this.knex.fn.now()
-        });
-
-        const gameCreated = await this.knex(this.GAME_TABLE)
-                                .where({
-                                    title: title,
-                                    release: release
-                                }).first();
-
-        return res.status(201).send(gameCreated)
+        const game = await this.gameService.createGame(req.body);
+        return res.status(201).json(game);
     }
 
     async removeGame(req, res) {
-        const errors = validationResult(req);
+        const gameId = req.params.game_id;
+        const game = await this.gameService.deleteGame(gameId);
+        return res.status(201).json(game);
+    }
 
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
-
-        const {title, release} = req.body;
-
-        const gameCheck = await this.knex(this.GAME_TABLE)
-                                .where({
-                                    title: title,
-                                    release: release
-                                }).first();
-
-        if(!gameCheck) {
-            return res.status(409).json({ msg: 'This game does not exist.' })
-        }
-
-        await this.knex(this.GAME_TABLE)
-                                .where({
-                                    title: title,
-                                    release: release
-                                }).delete();
-
-        return res.status(201).json({ msg: 'Game deleted.' })
+    async updateGame(req, res) {
+        const gameId = req.params.game_id;
+        await this.gameService.updateGame(req.body);
+        const game = await this.gameService.getGameById(gameId);
+        return res.status(201).json(game);
     }
 }
 

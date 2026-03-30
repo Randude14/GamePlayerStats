@@ -1,0 +1,21 @@
+// middleware for catching AppErrors and sending back to the user for expected errors
+// any other error is simply sent back to the user as status 500
+const AppError = require('../util/AppError');
+
+const globalErrorHandler = (err, req, res, next) => {
+    console.error(err); // log full stack for debugging
+
+    if (err instanceof AppError) {
+        return res.status(err.statusCode).json({
+            status: err.status,
+            message: err.message
+        });
+    }
+
+    res.status(500).json({
+        status: 'error',
+        message: 'Something went wrong!'
+    });
+};
+
+module.exports = globalErrorHandler;

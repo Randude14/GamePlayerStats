@@ -1,9 +1,11 @@
 
-// Extends the base errors class with an included status code for services to communicate what happened to controllers
 class AppError extends Error {
     constructor(message, statusCode) {
         super(message);
-        this.statusCode = statusCode;
+        this.statusCode = statusCode || 500;
+        this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
+        this.isOperational = true; // mark as expected operational errors
+        Error.captureStackTrace(this, this.constructor);
     }
 }
 

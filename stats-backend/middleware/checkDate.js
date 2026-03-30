@@ -1,4 +1,4 @@
-function checkDate(dateField) {
+function checkDate(dateField, enforceExistence=true) {
 
     if(!dateField || dateField.length === 0) {
         throw new Error("dateField required.");
@@ -8,6 +8,12 @@ function checkDate(dateField) {
         const date = req.body[dateField];
 
         if(date === undefined || date === null) {
+
+            // Some cases we don't need to check a data, ignore if it doesn't exist
+            if(!enforceExistence) {
+                next();
+                return;
+            }
             return res.status(400).json({ error: `${dateField} not provided` })
         }
 
