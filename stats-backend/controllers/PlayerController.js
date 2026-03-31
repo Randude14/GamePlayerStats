@@ -26,10 +26,9 @@ class PlayerController {
 
         app.delete('/players/me', auth, this.catchAsyncRoute(this.removePlayer));
 
-        app.put('/players/username', [
+        app.patch('/players', [
             auth,
-            check('username', 'Please include a username of at least 6 characters.').isLength({ min: 6})
-        ], validateErrors(), this.catchAsyncRoute(this.updatePlayerUsername));
+        ], this.catchAsyncRoute(this.updatePlayer));
     }
 
     catchAsyncRoute(_func) {
@@ -57,11 +56,10 @@ class PlayerController {
         return res.status(200).json({ message: 'Player removed.' });
     }
 
-    async updatePlayerUsername(req, res) {
+    async updatePlayer(req, res) {
 
         const playerId = req.player.id;
-        const playerName = req.body.username;
-        await this.playerService.updateUsername(playerId, playerName);
+        await this.playerService.updatePlayer(playerId, req.body);
         return res.status(200).json({ message: 'Username updated.' });
     }
 }

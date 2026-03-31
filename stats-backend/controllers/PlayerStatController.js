@@ -1,178 +1,100 @@
 const { check } = require('express-validator');
 const checkDate = require('../middleware/checkDate');
 const checkNotNegative = require('../middleware/checkNotNegative');
+const auth = require('../middleware/auth');
+const catchAsync = require('../middleware/catchAsync');
+const validateErrors = require('../middleware/validateErrors');
 
 class PlayerStatController {
 
-    constructor(_knex) {
-        this.knex = _knex;
+    constructor(_playerService, _gameService, _playerStatService) {
+        this.playerService = _playerService;
+        this.gameService = _gameService;
+        this.playerStatService = _playerStatService;
         this.PLAYER_STAT_TABLE = "player_stats";
     }
 
     registerRoutes(app) {
-        app.get('/player_stats/all', this.getAllStats.bind(this));
+        app.get('/player_stats/all', this.catchAsyncRoute(this.getAllStats));
 
-        app.post('/player_stats/add/:player_id/:game_id', [
+        app.get('/player_stats/search/:player_id/:game_id', this.catchAsyncRoute(this.getPlayerStatFor));
+
+        app.get('/player_stats/search/:player_id', this.catchAsyncRoute(this.getAllPlayerStatsFor));
+
+        app.post('/player_stats', [
+            auth,
+            check('game_id', 'Please include the id of the game.'),
             checkDate('date_purchased'),
             checkNotNegative('hours_played')
-        ], this.addPlayerStat.bind(this));
+        ], validateErrors(), this.catchAsyncRoute(this.addPlayerStat));
 
-        app.patch('/player_stats/set/:player_id/:game_id',
-            checkNotNegative('hours_played')
-        , this.setPlayerStat.bind(this));
+        app.patch('/player_stats/:stat_id', [
+            auth,
+            checkDate('date_purchased', false),
+            checkNotNegative('hours_played', false),
+        ], validateErrors(), this.catchAsyncRoute(this.updatePlayerStat));
 
-        app.get('/player_stats/search/:player_id/:game_id', this.getGameStatsFor.bind(this));
-        
-        app.get('/player_stats/search/:player_id', this.getPlayerStatsFor.bind(this));
+        app.delete('/player_stats/me/:stat_id', [
+            auth
+        ], validateErrors(), this.catchAsyncRoute(this.deletePlayerStat));
 
-        app.delete('/player_stats/:player_id/:game_id', this.deletePlayerStat.bind(this))
+    }
 
+    catchAsyncRoute(_func) {
+        return catchAsync(_func.bind(this));
     }
 
     async getAllStats(req, res) {
-        const rows = await this.knex(this.PLAYER_STAT_TABLE);
-        return res.json(rows);
+        const rows = await this.playerStatService.getAllStats();
+        return res.status(200).json(rows);
+    }
+
+    async getPlayerStatFor(req, res) {
+        const {player_id, game_id} = req.params;
+        const playerStats = await this.playerStatService.getByPlayerAndGame(player_id, game_id);
+        return res.status(200).json(playerStats);
+    } 
+
+    async getAllPlayerStatsFor(req, res) {
+        const player_id = req.params.player_id;
+        const playerStatRows = this.playerStatService.getAllStatsFor(player_id);
+        return res.status(200).json(playerStatRows);
     }
 
     async addPlayerStat(req, res) {
-        const {player_id, game_id} = req.params;
-
-        if(!player_id || !game_id) {
-            return res.status(400).json({ error: 'Played id and Game id were not provided.' });
-        }
-
-        const {date_purchased, hours_played} = req.body;
-
-        const playerStatCheck = await this.knex(this.PLAYER_STAT_TABLE)
-                                    .where({
-                                        player_id: player_id,
-                                        game_id: game_id
-                                    }).first();
-
-        if(playerStatCheck) {
-            return res.status(409).json({ error: 'Stat record already exists.' })
-        }
+        const player_id = req.player.id;
+        const {game_id} = req.body;
         
-        await this.knex(this.PLAYER_STAT_TABLE)
-                    .insert({
-                        player_id: player_id,
-                        game_id: game_id,
-                        hours_played: hours_played,
-                        date_purchased: date_purchased,
-                        created_at: this.knex.fn.now()
-                    });
-        
+        // Ensure player and games exist
+        await this.playerService.getById(player_id);
+        await this.gameService.getById(game_id);
 
-        const playerStat = await this.knex(this.PLAYER_STAT_TABLE)
-                                    .where({
-                                        player_id: player_id,
-                                        game_id: game_id
-                                    }).first();
-
-        // Stat failed to be created
-        if(!playerStat) {
-            return res.status(500).json({ error: 'Server error: player stat failed to create for passed parameters and body.' });
-        }
-
+        const playerStat = await this.playerStatService.createPlayerStat(player_id, req.body);
         return res.status(201).json(playerStat);
     }
 
-    async setPlayerStat(req, res) {
-        const {player_id, game_id} = req.params;
+    async updatePlayerStat(req, res) {
+        const stat_id = req.params.stat_id;
+        const playerStatCheck = await this.playerStatService.getById(stat_id);
 
-        if(!player_id || !game_id) {
-            return res.status(400).json({ error: 'Played id and Game id were not provided.' });
+        if(playerStatCheck.player_id != req.player.id) {
+            return res.status(400).json({ error: 'User is not authorized to edit other players stats' });
         }
 
-        const { hours_played } = req.body;
-
-        const playerStatCheck = await this.knex(this.PLAYER_STAT_TABLE)
-                                    .where({
-                                        player_id: player_id,
-                                        game_id: game_id
-                                    }).first();
-
-        if(!playerStatCheck) {
-            return res.status(409).json({ error: 'Could not find stat record.' })
-        }
-        
-        await this.knex(this.PLAYER_STAT_TABLE)
-                    .where({
-                        player_id: player_id,
-                        game_id: game_id
-                    })
-                    .update({
-                        hours_played: hours_played
-                    });
-
-        const playerStat = await this.knex(this.PLAYER_STAT_TABLE)
-                                    .where({
-                                        player_id: player_id,
-                                        game_id: game_id
-                                    }).first();
-
-        return res.status(201).json(playerStat);
-    }
-
-    async getGameStatsFor(req, res) {
-        const {player_id, game_id} = req.params;
-
-        if(!player_id || !game_id) {
-            return res.status(400).json({ error: 'Played id and Game id were not provided.' });
-        }
-
-        const playerStats = await this.knex(this.PLAYER_STAT_TABLE)
-                                    .where({
-                                        player_id: player_id, 
-                                        game_id: game_id 
-                                    }).first();
-
-        if(!playerStats) {
-            return res.status(409).json({ error: 'Could not find a stat record.' })
-        }
-
-        return res.status(201).json(playerStats);
-    }
-
-    async getPlayerStatsFor(req, res) {
-        const player_id = req.params.player_id;
-
-        if(!player_id) {
-            return res.status(400).json({ msg: 'Played id was not provided.' });
-        }
-
-        const playerStatRows = await this.knex(this.PLAYER_STAT_TABLE)
-                                        .where({
-                                            player_id: player_id
-                                        });
-
-        return res.status(201).json(playerStatRows);
+        const playerStat = await this.playerStatService.updatePlayerStat(stat_id, req.body);
+        return res.status(200).json(playerStat);
     }
 
     async deletePlayerStat(req, res) {
-        const {player_id, game_id} = req.params;
+        const stat_id = req.params.stat_id;
+        const playerStatCheck = await this.playerStatService.getById(stat_id);
 
-        if(!player_id || !game_id) {
-            return res.status(400).json({ error: 'Played id and Game id were not provided.' });
+        if(playerStatCheck.player_id != req.player.id) {
+            return res.status(400).json({ error: 'User is not authorized to delete other players stats' });
         }
 
-        const playerStats = await this.knex(this.PLAYER_STAT_TABLE)
-                                    .where({
-                                        player_id: player_id, 
-                                        game_id: game_id 
-                                    }).first();
-
-        if(!playerStats) {
-            return res.status(409).json({ error: 'Could not find a stat record.' })
-        }
-
-        await this.knex(this.PLAYER_STAT_TABLE)
-                                    .where({
-                                        player_id: player_id, 
-                                        game_id: game_id 
-                                    }).delete();
-
-        return res.json({ msg: 'Record deleted.' });
+        const playerStat = await this.playerStatService.deletePlayerStat(stat_id);
+        return res.status(200).json(playerStat);
     }
 }
 

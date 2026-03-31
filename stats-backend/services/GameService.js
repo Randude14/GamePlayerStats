@@ -1,4 +1,5 @@
 const AppError = require('../util/AppError');
+const extractExistingData = require('../util/extractExistingData');
 
 class GameService {
 
@@ -68,15 +69,7 @@ class GameService {
         }
 
         // Only update existing fields
-        const dataToUpdate = {};
-        ['title', 'developer', 'publisher', 'release'].forEach(field => {
-            if(data[field]) {
-                dataToUpdate[field] = data[field];
-            }
-        });
-
-        // Add/update the updated_at date
-        dataToUpdate.updated_at = this.knex.fn.now();
+        const dataToUpdate = extractExistingData(['title', 'developer', 'publisher', 'release'], data);
 
         await this.knex(this.GAME_TABLE)
             .where({ id })

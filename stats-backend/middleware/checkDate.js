@@ -23,7 +23,7 @@ function checkDate(dateField, enforceExistence=true) {
         }
 
         // Validate actual date
-        const dateObj = new Date(value);
+        const dateObj = new Date(date);
         if (isNaN(dateObj.getTime())) {
             return res.status(400).json({ error: `${dateField} is not a valid date` });
         }

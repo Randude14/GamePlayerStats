@@ -4,6 +4,7 @@ const connecToDB = require('./config/db');
 const knex = require('knex')(require('./knexfile'));
 const PlayerService = require('./services/PlayerService');
 const GameService = require('./services/GameService');
+const PlayerStatService = require('./services/PlayerStatService');
 const PlayerController = require('./controllers/PlayerController');
 const GameController = require('./controllers/GameController');
 const PlayerStatController = require('./controllers/PlayerStatController');
@@ -29,8 +30,10 @@ const app = express();
           res.send('GamePlayerStats API is running');
         });
 
+        // Create services
         const playerService = new PlayerService(knex);
         const gameService = new GameService(knex);
+        const playerStatService = new PlayerStatService(knex);
 
         // Create controllers and register their routes
         const playerController = new PlayerController(playerService);
@@ -39,7 +42,7 @@ const app = express();
         const gameController = new GameController(gameService);
         gameController.registerRoutes(app);
       
-        const playerStatController = new PlayerStatController(knex);
+        const playerStatController = new PlayerStatController(playerService, gameService, playerStatService);
         playerStatController.registerRoutes(app);
 
         // Add global error handler last after routes

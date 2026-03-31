@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const config = require('config');
 const AppError = require('../util/AppError');
+const extractExistingData = require('../util/extractExistingData');
 
 class PlayerService {
 
@@ -94,16 +95,37 @@ class PlayerService {
         return token;
     }
 
-    async updateUsername(id, username) {
-        const playerFound = await this.knex(this.PLAYER_TABLE).where({ username }).first();
+    async updatePlayer(id, data) {
+        let username = data['username'];
+        let email = data['email'];
+
+        let query = this.knex(this.PLAYER_TABLE);
+
+        if(username && email) {
+            query = query.where({ username }).orWhere({ email });
+        }
+        else if(username) {
+            query = query.where({ username });
+        }
+        else if(email) {
+            query = query.where({ email });
+        }
+        else {
+            throw new AppError('No email or username provided.', 400);
+        }
+
+        const playerFound = await query.first();
 
         if(playerFound) {
-            throw new AppError('There is a player already with that username.', 409);
+            throw new AppError('There is a player already with that username and/or email.', 409);
         }
+
+        // Only update existing fields
+        const dataToUpdate = extractExistingData(['username', 'email'], data);
 
         await this.knex(this.PLAYER_TABLE)
             .where({ id })
-            .update({ username });
+            .update(dataToUpdate);
     }
 
     async deletePlayer(id) {
