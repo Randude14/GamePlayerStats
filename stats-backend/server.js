@@ -20,6 +20,14 @@ const app = express();
         // init middleware
         app.use(express.json());
 
+        const cors = require('cors');
+        app.use(cors({
+          origin: 'http://localhost:5173', // React app
+          credentials: true,
+          methods: ['GET','POST','PUT','DELETE'],
+          allowedHeaders: ['Content-Type','x-auth-token']
+        }));
+
         // init database
         const pool = await connecToDB(30);
 

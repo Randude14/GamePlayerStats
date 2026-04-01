@@ -60,7 +60,7 @@ class PlayerController {
 
         const playerId = req.player.id;
         await this.playerService.updatePlayer(playerId, req.body);
-        return res.status(200).json({ message: 'Username updated.' });
+        return res.status(200).json({ message: 'Information updated.' });
     }
 }
 

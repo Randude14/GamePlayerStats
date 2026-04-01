@@ -1,0 +1,11 @@
+.login_div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-block-start: 50px;
+    gap: 20px
+}
+
+#email, #password {
+    margin-inline-start: 20px;
+}

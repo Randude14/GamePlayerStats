@@ -17,9 +17,11 @@ class PlayerStatController {
     registerRoutes(app) {
         app.get('/player_stats/all', this.catchAsyncRoute(this.getAllStats));
 
-        app.get('/player_stats/search/:player_id/:game_id', this.catchAsyncRoute(this.getPlayerStatFor));
+        app.get('/player_stats/search/:player_id/game/:game_id', this.catchAsyncRoute(this.getPlayerStatFor));
 
         app.get('/player_stats/search/:player_id', this.catchAsyncRoute(this.getAllPlayerStatsFor));
+
+        app.get('/player_stats/me/', auth, this.catchAsyncRoute(this.getAllPlayerStatsForMe));
 
         app.post('/player_stats', [
             auth,
@@ -57,7 +59,14 @@ class PlayerStatController {
 
     async getAllPlayerStatsFor(req, res) {
         const player_id = req.params.player_id;
-        const playerStatRows = this.playerStatService.getAllStatsFor(player_id);
+        const playerStatRows = await this.playerStatService.getAllStatsFor(player_id);
+        return res.status(200).json(playerStatRows);
+    }
+
+    async getAllPlayerStatsForMe(req, res) {
+        const player_id = req.player.id;
+        const playerStatRows = await this.playerStatService.getAllStatsFor(player_id);
+        console.log(player_id)
         return res.status(200).json(playerStatRows);
     }
 
