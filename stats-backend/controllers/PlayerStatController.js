@@ -66,7 +66,6 @@ class PlayerStatController {
     async getAllPlayerStatsForMe(req, res) {
         const player_id = req.player.id;
         const playerStatRows = await this.playerStatService.getAllStatsFor(player_id);
-        console.log(player_id)
         return res.status(200).json(playerStatRows);
     }
 
