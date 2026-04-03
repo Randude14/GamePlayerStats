@@ -1,0 +1,8 @@
+.column-info-box {
+    display: grid;
+    row-gap: 20px;
+}
+
+.column-headers {
+    border-bottom: 3px solid #6f6f6f;
+}

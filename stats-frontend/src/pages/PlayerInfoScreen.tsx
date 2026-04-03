@@ -12,7 +12,7 @@ export function PlayerInfoScreen() {
         console.log('Fetching data...');
         const fetchPlayerStats = async () => {
 
-            const res = await fetchWithAuth('player_stats/me', HttpMethod.GET, '');
+            const res = await fetchWithAuth('player_stats/me', HttpMethod.GET);
 
             if(res.ok) {
                 const statRows: PlayerStat[] = await res.json();
@@ -26,7 +26,11 @@ export function PlayerInfoScreen() {
         }
 
         fetchPlayerStats();
-    }, [])
+    }, []);
+
+    if(error) {
+        return <strong>An error occured while attempting to get your game info.</strong>
+    }
 
     return <>
         
@@ -34,7 +38,7 @@ export function PlayerInfoScreen() {
             data.map(ps => {
                 return (
                 <div key={ps.id}>
-                    Game: {ps.game_id} | Hours: {ps.hours_played} | Purchased: {new Date(ps.date_purchased).toLocaleDateString()}
+                    Game: {ps.title} | Hours: {ps.hours_played} | Purchased: {new Date(ps.date_purchased).toLocaleDateString()}
                 </div>
                 );
             })

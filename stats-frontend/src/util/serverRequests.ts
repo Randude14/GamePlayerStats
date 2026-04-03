@@ -7,18 +7,14 @@ const HttpMethod = {
     DELETE: 'DELETE'
 }
 
-async function fetchNoBody(apiCall: string, method: string): Promise<Response> {
-    const res = await fetch(`http://localhost:3000/${apiCall}`, {
-        method: method
-    });
-
-    return res;
+function emptyBody(body: string): boolean {
+    return !body || body.length === 0;
 }
 
-async function fetchWithNoAuth(apiCall: string, method: string, body: string): Promise<Response> {
+async function fetchWithNoAuth(apiCall: string, method: string, body: string=''): Promise<Response> {
 
     // GET cannot have bodies even when empty
-    if(method === HttpMethod.GET) {
+    if(method === HttpMethod.GET || emptyBody(body)) {
         const res = await fetch(`http://localhost:3000/${apiCall}`, {
             method: method
         });
@@ -36,11 +32,15 @@ async function fetchWithNoAuth(apiCall: string, method: string, body: string): P
     }
 }
 
-async function fetchWithAuth(apiCall: string, method: string, body: string): Promise<Response> {
+async function fetchWithAuth(apiCall: string, method: string, body: string=''): Promise<Response> {
     const token: string = localStorage.getItem('token') || '';
 
+    if(token === '') {
+        return Promise.reject("User not logged in.");
+    }
+
     // GET cannot have bodies even when empty
-    if(method === HttpMethod.GET) {
+    if(method === HttpMethod.GET || emptyBody(body)) {
         const res = await fetch(`http://localhost:3000/${apiCall}`, {
             method: method,
             headers: {'x-auth-token': token},
@@ -59,4 +59,4 @@ async function fetchWithAuth(apiCall: string, method: string, body: string): Pro
     }
 }
 
-export { fetchNoBody, fetchWithNoAuth, fetchWithAuth, HttpMethod}
+export { fetchWithNoAuth, fetchWithAuth, HttpMethod}

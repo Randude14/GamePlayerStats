@@ -4,25 +4,29 @@ const jwt = require('jsonwebtoken');
 const config = require('config');
 const AppError = require('../util/AppError');
 const extractExistingData = require('../util/extractExistingData');
+const {Table} = require('../util/tables');
 
 class PlayerService {
 
     constructor(_knex) {
         this.knex = _knex;
-        this.PLAYER_TABLE = 'players';
+        this.passwordField = 'password_hash';
     }
 
     async getAllPlayers() {
-        const players = await this.knex(this.PLAYER_TABLE);
+        const players = await this.knex(Table.PLAYER_TABLE);
+        players.forEach(p => delete p[this.passwordField]);
         return players;
     }
 
     async getById(id) {
-        const player = await this.knex(this.PLAYER_TABLE).where({ id }).first();
+        const player = await this.knex(Table.PLAYER_TABLE).where({ id }).first();
 
         if(!player) {
             throw new AppError('Player not found with id ' + id, 404);
         }
+
+        delete player[this.passwordField];
 
         return player;
     }
@@ -32,7 +36,7 @@ class PlayerService {
 
         const { name, email, username, password } = data;
 
-        const existingPlayer = await this.knex(this.PLAYER_TABLE).where({ email }).orWhere({ username }).first();
+        const existingPlayer = await this.knex(Table.PLAYER_TABLE).where({ email }).orWhere({ username }).first();
 
         if(existingPlayer) {
             if(existingPlayer.email === email) {
@@ -43,7 +47,7 @@ class PlayerService {
         
         const password_hash = await bcrypt.hash(password, 10);
 
-        const [id] = await this.knex(this.PLAYER_TABLE).insert({
+        const [id] = await this.knex(Table.PLAYER_TABLE).insert({
             name: name,
             email: email,
             username: username,
@@ -68,7 +72,7 @@ class PlayerService {
 
     async authPlayer(data) {
         const { email, password } = data;
-        const playerFound = await this.knex(this.PLAYER_TABLE).where({ email }).first();
+        const playerFound = await this.knex(Table.PLAYER_TABLE).where({ email }).first();
 
         if(!playerFound) {
             throw new AppError('Invalid Credentials.', 401);
@@ -99,7 +103,7 @@ class PlayerService {
         let username = data['username'];
         let email = data['email'];
 
-        let query = this.knex(this.PLAYER_TABLE);
+        let query = this.knex(Table.PLAYER_TABLE);
 
         if(username && email) {
             query = query.where({ username }).orWhere({ email });
@@ -123,19 +127,19 @@ class PlayerService {
         // Only update existing fields
         const dataToUpdate = extractExistingData(['username', 'email'], data);
 
-        await this.knex(this.PLAYER_TABLE)
+        await this.knex(Table.PLAYER_TABLE)
             .where({ id })
             .update(dataToUpdate);
     }
 
     async deletePlayer(id) {
-        const player = await this.knex(this.PLAYER_TABLE).where({ id });
+        const player = await this.knex(Table.PLAYER_TABLE).where({ id });
 
         if(! player || player.length === 0) {
             throw new AppError('Player not found.', 404);
         }
 
-        await this.knex(this.PLAYER_TABLE).where({ id }).delete();
+        await this.knex(Table.PLAYER_TABLE).where({ id }).delete();
     }
 
 }

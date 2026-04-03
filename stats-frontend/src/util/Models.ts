@@ -22,4 +22,6 @@ export interface PlayerStat {
   hours_played: string;
   date_purchased: string;
   created_at: string;
+  title: string;
+  release: string;
 }

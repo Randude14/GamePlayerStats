@@ -1,20 +1,20 @@
 const AppError = require('../util/AppError');
 const extractExistingData = require('../util/extractExistingData');
+const {Table} = require('../util/tables');
 
 class GameService {
 
     constructor(_knex) {
         this.knex = _knex;
-        this.GAME_TABLE = 'games';
     }
 
     async getAllGames() {
-        const games = await this.knex(this.GAME_TABLE);
+        const games = await this.knex(Table.GAME_TABLE);
         return games;
     }
 
     async getById(id) {
-        const game = await this.knex(this.GAME_TABLE).where({ id }).first();
+        const game = await this.knex(Table.GAME_TABLE).where({ id }).first();
 
         if(!game) {
             throw new AppError('Game not found with id ' + id, 404);
@@ -28,7 +28,7 @@ class GameService {
             throw new AppError('title and/or release not provided.', 400);
         }
 
-        const game = await this.knex(this.GAME_TABLE).where({ title, release }).first();
+        const game = await this.knex(Table.GAME_TABLE).where({ title, release }).first();
 
         if(!game) {
             throw new AppError(`Could not find game for ${title} and ${release}`, 404);
@@ -40,7 +40,7 @@ class GameService {
     async createGame(data) {
         const {title, developer, publisher, release} = data;
 
-        const gameCheck = await this.knex(this.GAME_TABLE)
+        const gameCheck = await this.knex(Table.GAME_TABLE)
                                 .where({
                                     title: title,
                                     release: release
@@ -50,7 +50,7 @@ class GameService {
             throw new AppError('This game already exists.', 409);
         }
 
-        const game = await this.knex(this.GAME_TABLE).insert({
+        const game = await this.knex(Table.GAME_TABLE).insert({
             title: title,
             developer: developer,
             publisher: publisher,
@@ -62,7 +62,7 @@ class GameService {
     }
 
     async updateGame(id, data) {
-        const existingGame = await this.knex(this.GAME_TABLE).where({ id }).first();
+        const existingGame = await this.knex(Table.GAME_TABLE).where({ id }).first();
 
         if(!existingGame) {
             throw new AppError('Game does not exist.', 404);
@@ -71,20 +71,20 @@ class GameService {
         // Only update existing fields
         const dataToUpdate = extractExistingData(['title', 'developer', 'publisher', 'release'], data);
 
-        await this.knex(this.GAME_TABLE)
+        await this.knex(Table.GAME_TABLE)
             .where({ id })
             .update(dataToUpdate);
     }
 
     async deleteGame(id) {
-        const existingGame = await this.knex(this.GAME_TABLE)
+        const existingGame = await this.knex(Table.GAME_TABLE)
                                         .where({ id }).first();
 
         if(! existingGame) {
             throw new AppError('Game does not exist.', 404);
         }
 
-        await this.knex(this.GAME_TABLE).where({ id }).delete();
+        await this.knex(Table.GAME_TABLE).where({ id }).delete();
         return existingGame;
     }
 
