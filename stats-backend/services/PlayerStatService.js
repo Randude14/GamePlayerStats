@@ -9,7 +9,18 @@ class PlayerStatService {
     }
 
     async getAllStats() {
-        const stats = await this.knex(Table.PLAYER_STAT_TABLE);
+        const stats = await this.knex(`${Table.PLAYER_STAT_TABLE} as ps`)
+        .join(`${Table.GAME_TABLE} as g`, 'ps.game_id', 'g.id')
+        .join(`${Table.PLAYER_TABLE} as p`, 'ps.player_id', 'p.id')
+        .select(
+            'ps.player_id',
+            'ps.game_id',
+            'ps.hours_played',
+            'ps.date_purchased',
+            'p.username',
+            'g.title',
+            'g.release'
+        )
         return stats;
     }
 

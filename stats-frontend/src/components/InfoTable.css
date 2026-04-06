@@ -1,8 +1,9 @@
-.column-info-box {
+.info-table {
     display: grid;
     row-gap: 20px;
 }
 
 .column-headers {
     border-bottom: 3px solid #6f6f6f;
+    margin-block-start: 20px;
 }

@@ -7,14 +7,14 @@ import { AuthProvider } from './context/AuthContext';
 import { PlayerStatsAllPage } from './pages/PlayerStatsAllPage';
 
 enum Page {
-  Players,
+  MyStats,
   Games,
   Account
 }
 
 function getPageId(page: Page, isLoggedIn: boolean): string {
   switch(page) {
-    case Page.Players: return 'Players';
+    case Page.MyStats: return 'My Stats';
     case Page.Games: return 'Games';
     case Page.Account: return isLoggedIn ? 'Account' : 'Sign In';
   }
@@ -31,7 +31,7 @@ function App() {
     const _isLoggedIn = isLoggedIn();
     
     let navButtons: string[] = [
-      getPageId(Page.Players, _isLoggedIn),
+      getPageId(Page.MyStats, _isLoggedIn),
       getPageId(Page.Games, _isLoggedIn),
       getPageId(Page.Account, _isLoggedIn)
     ];
@@ -41,7 +41,7 @@ function App() {
           <Navbar navButtons={navButtons} setPageId={setPageId}></Navbar>
           {pageId === Page.Account && <AccountScreen/>}
           {pageId === Page.Games && <PlayerStatsAllPage/>}
-          {pageId === Page.Players && <PlayerInfoScreen/>}
+          {pageId === Page.MyStats && <PlayerInfoScreen/>}
       </AuthProvider>
     );
 }

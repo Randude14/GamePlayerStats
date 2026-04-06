@@ -1,47 +1,37 @@
-import { useEffect, useState } from "react"
-import { fetchWithAuth, HttpMethod } from "../util/serverRequests";
-import type { PlayerStat } from "../util/Models";
+import { type ReactElement } from "react"
+import { InfoTable } from "../components/InfoTable";
+
+type ITRecord = Record<string, any>
+
+const Fields = {
+    GAME_TITLE: 'title',
+    HOURS_PLAYED: 'hours_played',
+    DATE_PURCHASED: 'date_purchased',
+    GAME_RELEASE: 'release'
+}
+
+const columnNames = (field: string): string => {
+    switch (field) {
+        case Fields.GAME_TITLE: return 'Title';
+        case Fields.HOURS_PLAYED: return 'Hours Played';
+        case Fields.DATE_PURCHASED: return 'Date Purchased';
+        case Fields.GAME_RELEASE: return 'Game Release';
+    }
+    return '';
+}
+
+const rowFieldBuilder = (field: string, data: ITRecord): ReactElement => {
+    switch (field) {
+        case Fields.GAME_TITLE: // TODO return anchor element that goes to a page with the stats of players that own this title
+        case Fields.HOURS_PLAYED: return <label>{data[field]}</label>;
+        case Fields.GAME_RELEASE: 
+        case Fields.DATE_PURCHASED: return <label>{new Date(data[field]).toLocaleDateString()}</label>;
+    }
+    return <label>Error</label>;
+}
 
 export function PlayerInfoScreen() {
+    const rowFields: string[] = [Fields.GAME_TITLE, Fields.HOURS_PLAYED, Fields.GAME_RELEASE, Fields.DATE_PURCHASED];
 
-    const [data, setData] = useState<PlayerStat[]>([])
-    const [isLoading, setLoading] = useState(true);
-    const [error, setError] = useState(false);
-
-    useEffect(() => {
-        console.log('Fetching data...');
-        const fetchPlayerStats = async () => {
-
-            const res = await fetchWithAuth('player_stats/me', HttpMethod.GET);
-
-            if(res.ok) {
-                const statRows: PlayerStat[] = await res.json();
-                setError(false);
-                setData(statRows);
-            }
-            else {
-                setError(false);
-            }
-            setLoading(false);
-        }
-
-        fetchPlayerStats();
-    }, []);
-
-    if(error) {
-        return <strong>An error occured while attempting to get your game info.</strong>
-    }
-
-    return <>
-        
-        {!isLoading &&
-            data.map(ps => {
-                return (
-                <div key={ps.id}>
-                    Game: {ps.title} | Hours: {ps.hours_played} | Purchased: {new Date(ps.date_purchased).toLocaleDateString()}
-                </div>
-                );
-            })
-        }
-    </>
+    return <InfoTable auth={true} endpoint="player_stats/me" rowFields={rowFields} rowFieldBuilder={rowFieldBuilder} columnName={columnNames} />
 }
