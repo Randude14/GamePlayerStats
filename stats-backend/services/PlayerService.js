@@ -78,7 +78,7 @@ class PlayerService {
             throw new AppError('Invalid Credentials.', 401);
         }
 
-        // compare the password given and the encrypted password from mongodb
+        // compare the password given and the encrypted password
         const isMatch = await bcrypt.compare(password, playerFound.password_hash)
 
         if(!isMatch) {
@@ -99,37 +99,56 @@ class PlayerService {
         return token;
     }
 
-    async updatePlayer(id, data) {
-        let username = data['username'];
-        let email = data['email'];
-
-        let query = this.knex(Table.PLAYER_TABLE);
-
-        if(username && email) {
-            query = query.where({ username }).orWhere({ email });
-        }
-        else if(username) {
-            query = query.where({ username });
-        }
-        else if(email) {
-            query = query.where({ email });
-        }
-        else {
-            throw new AppError('No email or username provided.', 400);
-        }
-
-        const playerFound = await query.first();
+    async updatePlayerEmail(id, email) {
+        const playerFound = await this.knex(Table.PLAYER_TABLE).where({ email }).first();
 
         if(playerFound) {
-            throw new AppError('There is a player already with that username and/or email.', 409);
+            throw new AppError('There is a player already with that email.', 409);
         }
-
-        // Only update existing fields
-        const dataToUpdate = extractExistingData(['username', 'email'], data);
 
         await this.knex(Table.PLAYER_TABLE)
             .where({ id })
-            .update(dataToUpdate);
+            .update({ email });
+    }
+
+    async updatePlayerUsername(id, username) {
+        const playerFound = await this.knex(Table.PLAYER_TABLE).where({ username }).first();
+
+        if(playerFound) {
+            throw new AppError('There is a player already with that username.', 409);
+        }
+
+        await this.knex(Table.PLAYER_TABLE)
+            .where({ id })
+            .update({ username });
+    }
+
+    async updatePlayerPassword(id, oldPassword, newPassword) {
+        const playerFound = await this.knex(Table.PLAYER_TABLE).where({ id }).first();
+
+        // compare the password given and the encrypted password
+        const isMatch = await bcrypt.compare(oldPassword, playerFound.password_hash);
+
+        if(!isMatch) {
+            throw new AppError('Invalid credentials.', 401);
+        }
+
+        const password_hash = await bcrypt.hash(newPassword, 10);
+
+        await this.knex(Table.PLAYER_TABLE).where({ id }).update({ password_hash });
+
+        const payload = {
+            player: {
+                id : playerFound.id
+            }
+        }
+
+        const token = jwt.sign(payload, 
+            config.get('jwtSecret'), 
+            { expiresIn: 360000 }
+        );
+
+        return token;
     }
 
     async deletePlayer(id) {

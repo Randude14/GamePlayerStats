@@ -28,9 +28,21 @@ class PlayerController {
 
         app.delete('/players/me', auth, this.catchAsyncRoute(this.removePlayer));
 
-        app.patch('/players', [
+        app.patch('/players/me/email', [
             auth,
-        ], this.catchAsyncRoute(this.updatePlayer));
+            check('email', 'Please include an email.').notEmpty()
+        ], this.catchAsyncRoute(this.updatePlayerEmail));
+
+        app.patch('/players/me/username', [
+            auth,
+            check('username', 'Please include a username.').notEmpty()
+        ], this.catchAsyncRoute(this.updatePlayerUsername));
+
+        app.patch('/players/me/password', [
+            auth,
+            check('old_password', 'Please include your current password.').notEmpty(),
+            check('new_password', 'Please include your new password of at least 8 characters.').isLength({ min: 8 }).notEmpty()
+        ], validateErrors(), this.catchAsyncRoute(this.updatePlayerPassword));
     }
 
     catchAsyncRoute(_func) {
@@ -63,11 +75,26 @@ class PlayerController {
         return res.status(200).json({ message: 'Player removed.' });
     }
 
-    async updatePlayer(req, res) {
-
+    async updatePlayerEmail(req, res) {
         const playerId = req.player.id;
-        await this.playerService.updatePlayer(playerId, req.body);
-        return res.status(200).json({ message: 'Information updated.' });
+        const email = req.body.email;
+        await this.playerService.updatePlayerEmail(playerId, email);
+        return res.status(200).json({ message: 'Email updated.' });
+    }
+
+    async updatePlayerUsername(req, res) {
+        const playerId = req.player.id;
+        const username = req.body.username;
+        await this.playerService.updatePlayerUsername(playerId, username);
+        return res.status(200).json({ message: 'Username updated.' });
+    }
+
+    async updatePlayerPassword(req, res) {
+        const playerId = req.player.id;
+        const old_password = req.body.old_password;
+        const new_password = req.body.new_password;
+        const token = await this.playerService.updatePlayerPassword(playerId, old_password, new_password);
+        return res.status(200).json({ message: 'Password updated.', token });
     }
 }
 
