@@ -11,18 +11,20 @@ function emptyBody(body: string): boolean {
     return !body || body.length === 0;
 }
 
+const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
+
 async function fetchWithNoAuth(apiCall: string, method: string, body: string=''): Promise<Response> {
 
     // GET cannot have bodies even when empty
     if(method === HttpMethod.GET || emptyBody(body)) {
-        const res = await fetch(`http://localhost:3000/${apiCall}`, {
+        const res = await fetch(`${backendUrl}/${apiCall}`, {
             method: method
         });
 
         return res;
     }
     else {
-        const res = await fetch(`http://localhost:3000/${apiCall}`, {
+        const res = await fetch(`${backendUrl}/${apiCall}`, {
             method: method,
             headers: { 'Content-Type': 'application/json'},
             body: body
@@ -41,7 +43,7 @@ async function fetchWithAuth(apiCall: string, method: string, body: string=''): 
 
     // GET cannot have bodies even when empty
     if(method === HttpMethod.GET || emptyBody(body)) {
-        const res = await fetch(`http://localhost:3000/${apiCall}`, {
+        const res = await fetch(`${backendUrl}/${apiCall}`, {
             method: method,
             headers: {'x-auth-token': token},
         });
@@ -49,7 +51,7 @@ async function fetchWithAuth(apiCall: string, method: string, body: string=''): 
         return res;
     }
     else {
-        const res = await fetch(`http://localhost:3000/${apiCall}`, {
+        const res = await fetch(`${backendUrl}/${apiCall}`, {
             method: method,
             headers: { 'Content-Type': 'application/json', 'x-auth-token': token},
             body: body

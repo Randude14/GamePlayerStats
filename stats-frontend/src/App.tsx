@@ -6,18 +6,19 @@ import { PlayerInfoScreen } from './pages/PlayerInfoScreen';
 import { AuthProvider } from './context/AuthContext';
 import { PlayerStatsAllPage } from './pages/PlayerStatsAllPage';
 
-enum Page {
-  MyStats,
-  Games,
-  Account
+const Page = {
+  MyStats: 0,
+  Games: 1,
+  Account: 2
 }
 
-function getPageId(page: Page, isLoggedIn: boolean): string {
+function getPageId(page: number, isLoggedIn: boolean): string {
   switch(page) {
     case Page.MyStats: return 'My Stats';
     case Page.Games: return 'Games';
     case Page.Account: return isLoggedIn ? 'Account' : 'Sign In';
   }
+  return '';
 }
 
 function isLoggedIn(): boolean {
@@ -30,7 +31,7 @@ function App() {
 
     const _isLoggedIn = isLoggedIn();
     
-    let navButtons: string[] = [
+    const navButtons: string[] = [
       getPageId(Page.MyStats, _isLoggedIn),
       getPageId(Page.Games, _isLoggedIn),
       getPageId(Page.Account, _isLoggedIn)
