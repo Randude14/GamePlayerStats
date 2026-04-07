@@ -13,7 +13,7 @@ export default function Navbar({navButtons, setPageId}: NavbarSettings) {
     return <>
         <div className="navbar">
             {
-                navButtons.map((nb: string, index: number) => <button onClick={() => clickHandler(index)}>{nb}</button>)
+                navButtons.map((nb: string, index: number) => <button key={nb} onClick={() => clickHandler(index)}>{nb}</button>)
             } 
         </div> 
     </>

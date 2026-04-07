@@ -1,5 +1,5 @@
 // src/context/AuthContext.tsx
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect } from "react";
 import type {Player} from "../util/Models"
 import { fetchWithAuth, HttpMethod } from "../util/serverRequests";
 

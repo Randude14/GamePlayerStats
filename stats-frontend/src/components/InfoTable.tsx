@@ -3,15 +3,14 @@ import { useAuth } from "../context/useAuth";
 import { fetchWithAuth, fetchWithNoAuth, HttpMethod } from "../util/serverRequests";
 import './InfoTable.css'
 
-
-type ITRecord = Record<string, any>
+type RowObject = Record<string, unknown>;
 
 interface ColumnInfoSettings {
     auth: boolean, // whether to use user token
     endpoint: string, // API endpoint to get rows from
     rowFields: string[], // Array of fields to pull from rows
     columnName: (field: string) => string, // Function passed to get field name from column
-    rowFieldBuilder: (field: string, data: ITRecord) => ReactElement, // Function passed to get elements based on field and data
+    rowFieldBuilder: (field: string, data: RowObject) => ReactElement, // Function passed to get elements based on field and data
 }
 
 function buildColumnHeaders({rowFields, columnName}: ColumnInfoSettings) {
@@ -27,7 +26,7 @@ function buildColumnHeaders({rowFields, columnName}: ColumnInfoSettings) {
         </>
 }
 
-function buildRows({rowFields, rowFieldBuilder}: ColumnInfoSettings, rows: ITRecord[]) {
+function buildRows<T extends RowObject>({rowFields, rowFieldBuilder}: ColumnInfoSettings, rows: T[]) {
 
     return <>
         {
@@ -40,11 +39,12 @@ function buildRows({rowFields, rowFieldBuilder}: ColumnInfoSettings, rows: ITRec
     </>
 }
 
-export function InfoTable(settings: ColumnInfoSettings) {
+// Generics type allows table to work with an inhertied object type
+export function InfoTable<T extends RowObject>(settings: ColumnInfoSettings) {
 
     const { token } = useAuth();
 
-    const [rows, setRows] = useState<ITRecord[]>([]);
+    const [rows, setRows] = useState<T[]>([]);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
 
@@ -54,43 +54,53 @@ export function InfoTable(settings: ColumnInfoSettings) {
 
     useEffect(() => {
         const fetchRows = async () => {
-            if(settings.auth && !token) {
-                setErrorMessage('Please log in first.');
+            setLoading(true);
+            setErrorMessage(null);
+
+            if (settings.auth && !token) {
+                setErrorMessage("Please log in first.");
+                setRows([]);
                 setLoading(false);
                 return;
             }
 
             const endpointFetch = settings.auth ? fetchWithAuth : fetchWithNoAuth;
             const res = await endpointFetch(settings.endpoint, HttpMethod.GET);
+
+            let data: unknown = null;
             try {
-                const data = await res.json();
-                if(res.ok) {
-                    setErrorMessage(null);
-                    if(!Array.isArray(data)) {
-                        setErrorMessage('Invalid endpoint.');
-                    }
-                    else {
-                        const _rows: ITRecord[] = data;
-                        setRows(_rows);
-                    }
-                }
-                else {
-                    let msg = data.message || data.msg;
-                    if(!msg && Array.isArray(data.errors)) {
-                        msg = data.errors[0].msg;
-                    }
-                    setErrorMessage(msg);
-                }
-            }
-            catch(err: unknown) {
-                console.log(err);
-                setErrorMessage(err.message || err.msg);
+                data = await res.json();
+            } catch {
+                data = null;
             }
 
+            if (!res.ok) {
+                const err = data as
+                | { message?: string; msg?: string; errors?: { msg?: string }[] }
+                | null;
 
+                let msg = err?.message || err?.msg;
+                if (!msg && Array.isArray(err?.errors)) {
+                msg = err?.errors[0]?.msg;
+                }
+
+                setErrorMessage(msg || "Failed to load data.");
+                setRows([]);
+                setLoading(false);
+                return;
+            }
+
+            if (!Array.isArray(data)) {
+                setErrorMessage("Expected an array response.");
+                setRows([]);
+                setLoading(false);
+                return;
+            }
+
+            setRows(data as T[]);
             setLoading(false);
-        }
-        
+        };
+
         fetchRows();
     }, [settings.auth, settings.endpoint, token]);
 

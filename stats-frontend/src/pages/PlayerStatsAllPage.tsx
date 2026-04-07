@@ -1,7 +1,12 @@
 import type { ReactElement } from "react";
 import { InfoTable } from "../components/InfoTable";
 
-type ITRecord = Record<string, any>
+type PlayerStatRow = {
+    title: string,
+    hours_played: number,
+    date_purchased: Date,
+    release: Date
+}
 
 const Fields = {
     PLAYER_NAME: 'username',
@@ -22,20 +27,21 @@ const columnNames = (field: string): string => {
     return '';
 }
 
-const rowFieldBuilder = (field: string, data: ITRecord): ReactElement => {
+const rowFieldBuilder = (field: string, data: PlayerStatRow): ReactElement => {
+    let labelString: string = 'Error';
     switch (field) {
         case Fields.PLAYER_NAME: // TODO return anchor element that goes to a page with all stats of player
         case Fields.GAME_TITLE: // TODO return anchor element that goes to a page with the stats of players that own this title
-        case Fields.HOURS_PLAYED: return <label>{data[field]}</label>;
+        case Fields.HOURS_PLAYED: labelString = data[field]; break;
         case Fields.GAME_RELEASE: 
-        case Fields.DATE_PURCHASED: return <label>{new Date(data[field]).toLocaleDateString()}</label>;
+        case Fields.DATE_PURCHASED: labelString = new Date(data[field]).toLocaleDateString(); break;
     }
-    return <label>Error</label>;
+    return <label key={field}>{labelString}</label>;
 }
 
 export function PlayerStatsAllPage() {
     const rowFields: string[] = [Fields.PLAYER_NAME, Fields.GAME_TITLE, Fields.HOURS_PLAYED, Fields.DATE_PURCHASED, Fields.GAME_RELEASE];
 
-    return <InfoTable auth={false} endpoint="player_stats/all" rowFields={rowFields} 
+    return <InfoTable<PlayerStatRow> auth={false} endpoint="player_stats/all" rowFields={rowFields} 
                     columnName={columnNames} rowFieldBuilder={rowFieldBuilder}/>
 }

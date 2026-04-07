@@ -5,15 +5,19 @@ import { AccountScreen } from './pages/AccountScreen'
 import { PlayerInfoScreen } from './pages/PlayerInfoScreen';
 import { AuthProvider } from './context/AuthContext';
 import { PlayerStatsAllPage } from './pages/PlayerStatsAllPage';
+import { AllGamesScreen } from './pages/AllGamesScreen';
+import { useAuth } from './context/useAuth';
 
 const Page = {
-  MyStats: 0,
-  Games: 1,
-  Account: 2
+  AllStats: 0,
+  MyStats: 1,
+  Games: 2,
+  Account: 3
 }
 
 function getPageId(page: number, isLoggedIn: boolean): string {
   switch(page) {
+    case Page.AllStats: return 'All Stats';
     case Page.MyStats: return 'My Stats';
     case Page.Games: return 'Games';
     case Page.Account: return isLoggedIn ? 'Account' : 'Sign In';
@@ -21,27 +25,25 @@ function getPageId(page: number, isLoggedIn: boolean): string {
   return '';
 }
 
-function isLoggedIn(): boolean {
-    return !! localStorage.getItem('token');
-}
-
 function App() {
 
     const [pageId, setPageId] = useState(0);
 
-    const _isLoggedIn = isLoggedIn();
+    const isLoggedIn: boolean = !!localStorage.getItem('token');
     
     const navButtons: string[] = [
-      getPageId(Page.MyStats, _isLoggedIn),
-      getPageId(Page.Games, _isLoggedIn),
-      getPageId(Page.Account, _isLoggedIn)
+      getPageId(Page.AllStats, isLoggedIn),
+      getPageId(Page.MyStats, isLoggedIn),
+      getPageId(Page.Games, isLoggedIn),
+      getPageId(Page.Account, isLoggedIn)
     ];
 
     return (
       <AuthProvider>
           <Navbar navButtons={navButtons} setPageId={setPageId}></Navbar>
+          {pageId === Page.AllStats && <PlayerStatsAllPage/>}
           {pageId === Page.Account && <AccountScreen/>}
-          {pageId === Page.Games && <PlayerStatsAllPage/>}
+          {pageId === Page.Games && <AllGamesScreen/>}
           {pageId === Page.MyStats && <PlayerInfoScreen/>}
       </AuthProvider>
     );

@@ -3,15 +3,14 @@ import { fetchWithNoAuth, HttpMethod } from "../util/serverRequests";
 import './AccountScreen.css'
 import { useAuth } from "../context/useAuth";
 
-export function AccountScreen() {
-    const { user, token, logout, login } = useAuth();
-
-    const [message, setMessage] = useState('');
+function AccountLogin() {
 
     const emailRef = useRef<HTMLInputElement | null>(null);
     const passwordRef = useRef<HTMLInputElement | null>(null);
 
-    const [isLoggedIn, setLoggedIn] = useState(!!token);
+    const [message, setMessage] = useState<string | null>(null);
+
+    const { logout, login } = useAuth();
 
     const loginClickHandler = async () => {
         console.log('Login button clicked')
@@ -30,11 +29,9 @@ export function AccountScreen() {
                         msg = data.errors[0].msg;
                     }
                     setMessage(msg || '');
-                    setLoggedIn(false);
                     logout();
                 }
                 else {
-                    setLoggedIn(true);
                     setMessage('');
                     login(data);
                 }
@@ -49,7 +46,18 @@ export function AccountScreen() {
         }
     }
 
-    if(isLoggedIn) {
+    return <div className="login_div">
+            <div><label>Email:</label><input type="email" id="email" ref={emailRef}></input></div>
+            <div><label>Password:</label><input type="password" id="password" ref={passwordRef}></input></div>
+            <button type="submit" onClick={loginClickHandler}>Login</button>
+            {message != '' && <label>{message}</label>}
+    </div>
+}
+
+export function AccountScreen() {
+    const { user, token, logout } = useAuth();
+
+    if(token) {
         if(user) {
             return <>
                 <div><label>Username: {user.username}</label></div>
@@ -58,8 +66,11 @@ export function AccountScreen() {
                 <div>
                     <button onClick={
                         () => {
+                        }
+                    }>Update Profile</button>
+                                        <button onClick={
+                        () => {
                             logout();
-                            setLoggedIn(false);
                         }
                     }>Logout</button>
                 </div>
@@ -70,11 +81,5 @@ export function AccountScreen() {
         }
     }
 
-    return   <div className="login_div">
-            <div><label>Email:</label><input type="email" id="email" ref={emailRef}></input></div>
-            <div><label>Password:</label><input type="password" id="password" ref={passwordRef}></input></div>
-            <button type="submit" onClick={loginClickHandler}>Login</button>
-            {message != '' && <label>{message}</label>}
-        </div>
-
+    return <AccountLogin/>;
 }
