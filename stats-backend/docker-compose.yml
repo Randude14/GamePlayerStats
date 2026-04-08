@@ -6,6 +6,8 @@ services:
       - '4000:4000'
     environment:
       - PORT=4000
+      - TWITCH_CLIENT_ID=h0zgudvlf56ii2q4wpusij14t7dh3j
+      - TWITCH_CLIENT_SECRET=qs9jbcscqxmafrjl03vimllcnjljbb
     env_file:
       - .env
     depends_on:

@@ -6,8 +6,9 @@ const catchAsync = require('../middleware/catchAsync');
 
 class GameController {
 
-    constructor(_gameService) {
+    constructor(_gameService, _externalGameAPIService) {
         this.gameService = _gameService;
+        this.externalGameAPIService = _externalGameAPIService;
     }
 
     registerRoutes(app) {
@@ -27,6 +28,8 @@ class GameController {
         app.patch('/games/:game_id', [
             checkDate('release', false)
         ], validateErrors(), this.catchAsyncRoute(this.updateGame));
+
+        app.post('/games/external/search/', this.catchAsyncRoute(this.searchExternalGames))
 
         app.delete('/games/:game_id', this.catchAsyncRoute(this.removeGame));
     }
@@ -68,6 +71,14 @@ class GameController {
         await this.gameService.updateGame(req.body);
         const game = await this.gameService.getGameById(gameId);
         return res.status(201).json(game);
+    }
+
+    async searchExternalGames(req, res) {
+        const gameTitleToSearch = req.query.query?.trim();
+        const page = Number(req.query.page) || 1;
+        const pageSize = Number(req.query.pageSize) || 20;
+        const games = await this.externalGameAPIService.searchExternalGames(gameTitleToSearch, page, pageSize);
+        return res.status(200).json(games);
     }
 }
 

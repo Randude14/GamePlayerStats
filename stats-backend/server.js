@@ -3,12 +3,14 @@ const dotenv = require('dotenv');
 const connecToDB = require('./config/db');
 const knex = require('knex')(require('./knexfile'));
 const PlayerService = require('./services/PlayerService');
+const ExternalGameAPIService = require('./services/ExternalGameAPIService');
 const GameService = require('./services/GameService');
 const PlayerStatService = require('./services/PlayerStatService');
 const PlayerController = require('./controllers/PlayerController');
 const GameController = require('./controllers/GameController');
 const PlayerStatController = require('./controllers/PlayerStatController');
 const globalErrorHandler = require('./middleware/globalErrorHandler');
+
 
 dotenv.config();
 
@@ -48,6 +50,7 @@ const app = express();
         });
 
         // Create services
+        const externalGameAPIService = new ExternalGameAPIService(knex);
         const playerService = new PlayerService(knex);
         const gameService = new GameService(knex);
         const playerStatService = new PlayerStatService(knex);
@@ -56,7 +59,7 @@ const app = express();
         const playerController = new PlayerController(playerService);
         playerController.registerRoutes(app);
 
-        const gameController = new GameController(gameService);
+        const gameController = new GameController(gameService, externalGameAPIService);
         gameController.registerRoutes(app);
       
         const playerStatController = new PlayerStatController(playerService, gameService, playerStatService);
