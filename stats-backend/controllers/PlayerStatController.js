@@ -48,7 +48,7 @@ class PlayerStatController {
 
     async getAllStats(req, res) {
         const rows = await this.playerStatService.getAllStats();
-        return res.status(200).json(rows);
+        return res.status(200).json({results: rows});
     }
 
     async getPlayerStatFor(req, res) {
@@ -60,13 +60,13 @@ class PlayerStatController {
     async getAllPlayerStatsFor(req, res) {
         const player_id = req.params.player_id;
         const playerStatRows = await this.playerStatService.getAllStatsFor(player_id);
-        return res.status(200).json(playerStatRows);
+        return res.status(200).json({results: playerStatRows});
     }
 
     async getAllPlayerStatsForMe(req, res) {
         const player_id = req.player.id;
         const playerStatRows = await this.playerStatService.getAllStatsFor(player_id);
-        return res.status(200).json(playerStatRows);
+        return res.status(200).json({results: playerStatRows});
     }
 
     async addPlayerStat(req, res) {

@@ -25,3 +25,19 @@ export interface PlayerStat {
   title: string;
   release: string;
 }
+
+export type RowObject = Record<string, unknown>;
+export interface InfoResult<T extends RowObject> {
+  results?: T[]
+}
+
+
+export interface ExternalGameResult<T extends RowObject> extends InfoResult<T> {
+  query: string,
+  page: number,
+  pageSize: number,
+  totalResults: number,
+  totalPages: number,
+  hasPreviousPage: boolean,
+  hasNextPage: boolean
+}

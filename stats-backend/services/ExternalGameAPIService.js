@@ -10,6 +10,18 @@ class ExternalGameAPIService {
         this.tokenExpiresAt = null;
     }
 
+    getRequestInit(body) {
+        return {
+            method: 'POST',
+            headers: {
+                'Client-ID': process.env.TWITCH_CLIENT_ID,
+                'Authorization': `Bearer ${this.igdbToken}`,
+                'Content-Type': 'text/plain'
+            },
+            body
+        };
+    }
+
     async getIGDBToken() {
         if(this.igdbToken && Date.now() < this.tokenExpiresAt) {
             return this.igdbToken;
@@ -39,23 +51,16 @@ class ExternalGameAPIService {
         const offset = (page - 1) * pageSize;
 
         const safeSearch = search.replace(/"/g, '\\"');
-        const res = await fetch('https://api.igdb.com/v4/games',{
-            method: 'POST',
-            headers: {
-                'Client-ID': process.env.TWITCH_CLIENT_ID,
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'text/plain'
-            },
-            body: `
-                search \"${safeSearch}\"; fields name, first_release_date,
-                involved_companies.company.name,
-                involved_companies.developer,
-                involved_companies.publisher; 
-                where version_parent = null;
-                limit ${pageSize};
-                offset ${offset};   
-            `
-        });
+        const res = await fetch('https://api.igdb.com/v4/games', 
+                        this.getRequestInit(`
+                            search \"${safeSearch}\"; fields name, first_release_date,
+                            involved_companies.company.name,
+                            involved_companies.developer,
+                            involved_companies.publisher; 
+                            where version_parent = null;
+                            limit ${pageSize};
+                            offset ${offset};   
+                        `));
 
         if(!res.ok) {
             throw new AppError('Failed to search IGDB games.', 500);
@@ -63,7 +68,7 @@ class ExternalGameAPIService {
 
         const data = await res.json();
 
-        return data.map(game => ({
+        const results = data.map(game => ({
             external_id: game.id,
             title: game.name,
             release_date: game.first_release_date ? 
@@ -78,6 +83,31 @@ class ExternalGameAPIService {
                 .map(comp => comp.company?.name)
                 .filter(Boolean) || []
         }));
+
+        const countRes = await fetch('https://api.igdb.com/v4/games/count',
+                            this.getRequestInit(`
+                                search \"${safeSearch}\";
+                                where version_parent = null;
+                            `));
+
+        if(!countRes.ok) {
+            throw new AppError('Failed to get the count from IGDB games.', 500);
+        }
+
+        const countData = await countRes.json();
+        const totalResults = countData.count || 0;
+        const totalPages = Math.ceil(totalResults / pageSize) ; 
+
+        return {
+            query: search,
+            page,
+            pageSize,
+            totalResults,
+            totalPages,
+            hasPreviousPage: page > 1,
+            hasNextPage: page < totalPages,
+            results
+        }
     }
 }
 
