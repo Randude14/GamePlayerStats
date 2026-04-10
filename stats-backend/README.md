@@ -1,6 +1,6 @@
 # Stats Backend
 
-Express.js API with MySQL containerized via Docker.
+Built with Express API and MySQL in a consitent containerized docker.
 
 ## Getting Started
 
