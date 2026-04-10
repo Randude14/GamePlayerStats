@@ -38,7 +38,11 @@ class GameService {
     }
 
     async createGame(data) {
-        const {title, developer, publisher, release} = data;
+        const {title, developers, publishers, release, cover_url, external_id, external_source} = data;
+
+        if(!title || !release) {
+            throw new AppError('title and/or release not provided.', 400);
+        }
 
         const gameCheck = await this.knex(Table.GAME_TABLE)
                                 .where({
@@ -51,10 +55,13 @@ class GameService {
         }
 
         const game = await this.knex(Table.GAME_TABLE).insert({
-            title: title,
-            developer: developer,
-            publisher: publisher,
-            release: release,
+            title,
+            release,
+            developers,
+            publishers,
+            cover_url,
+            external_id,
+            external_source,
             created_at: this.knex.fn.now()
         });
 

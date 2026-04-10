@@ -10,12 +10,12 @@ class ExternalGameAPIService {
         this.tokenExpiresAt = null;
     }
 
-    getRequestInit(body) {
+    getRequestInit(token, body) {
         return {
             method: 'POST',
             headers: {
                 'Client-ID': process.env.TWITCH_CLIENT_ID,
-                'Authorization': `Bearer ${this.igdbToken}`,
+                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'text/plain'
             },
             body
@@ -47,12 +47,12 @@ class ExternalGameAPIService {
     async searchExternalGames(search, page=1, pageSize=20) {
         page = Math.max(page, 1);
         pageSize = Math.max(pageSize, 5);
-        const token = await this.getIGDBToken();
         const offset = (page - 1) * pageSize;
 
+        const token = await this.getIGDBToken();
         const safeSearch = search.replace(/"/g, '\\"');
         const res = await fetch('https://api.igdb.com/v4/games', 
-                        this.getRequestInit(`
+                        this.getRequestInit(token, `
                             search \"${safeSearch}\"; fields name, first_release_date,
                             involved_companies.company.name,
                             involved_companies.developer,
@@ -85,7 +85,7 @@ class ExternalGameAPIService {
         }));
 
         const countRes = await fetch('https://api.igdb.com/v4/games/count',
-                            this.getRequestInit(`
+                            this.getRequestInit(token, `
                                 search \"${safeSearch}\";
                                 where version_parent = null;
                             `));
@@ -108,6 +108,51 @@ class ExternalGameAPIService {
             hasNextPage: page < totalPages,
             results
         }
+    }
+
+    async integrateGame(external_id) {
+        const token = await this.getIGDBToken();
+        const res = await fetch('https://api.igdb.com/v4/games', 
+                        this.getRequestInit(token, `
+                            fields name, first_release_date,
+                            involved_companies.company.name,
+                            involved_companies.developer,
+                            involved_companies.publisher,
+                            cover.url; 
+                            where id=${external_id};
+                        `));
+
+        if(!res.ok) {
+            throw new AppError(`Failed to search for game with id ${external_id}.`, 500);
+        }
+
+        const data = await res.json();
+
+        if(data.length === 0) {
+            throw new AppError(`Failed to find game with id ${external_id}.`, 400);
+        }
+
+        // Covert and integrate the data
+        const externalGameData = data.map(game => ({
+            external_id: game.id,
+            title: game.name,
+            cover_url: game.cover.url,
+            external_source: 'igdb',
+            release: game.first_release_date ? 
+                new Date(game.first_release_date * 1000)
+                .toISOString().split('T')[0] : null,
+            developers: JSON.stringify(game.involved_companies
+                ?.filter(comp => comp.developer)
+                .map(comp => comp.company?.name)
+                .filter(Boolean) || []),
+            publishers: JSON.stringify(game.involved_companies
+                ?.filter(comp => comp.publisher)
+                .map(comp => comp.company?.name)
+                .filter(Boolean) || [])
+        }));
+
+        const externalGame = externalGameData[0];   
+        return externalGame;
     }
 }
 

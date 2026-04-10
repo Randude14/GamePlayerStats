@@ -29,7 +29,9 @@ class GameController {
             checkDate('release', false)
         ], validateErrors(), this.catchAsyncRoute(this.updateGame));
 
-        app.post('/games/external/search/', this.catchAsyncRoute(this.searchExternalGames))
+        app.post('/games/external/search/', this.catchAsyncRoute(this.searchExternalGames));
+
+        app.put('/games/external/import/:external_id', this.catchAsyncRoute(this.importExternalGame));
 
         app.delete('/games/:game_id', this.catchAsyncRoute(this.removeGame));
     }
@@ -79,6 +81,13 @@ class GameController {
         const pageSize = Number(req.query.pageSize) || 20;
         const games = await this.externalGameAPIService.searchExternalGames(gameTitleToSearch, page, pageSize);
         return res.status(200).json(games);
+    }
+
+    async importExternalGame(req, res) {
+        const external_id = req.params.external_id;
+        const externalGame = await this.externalGameAPIService.integrateGame(external_id); 
+        const game = await this.gameService.createGame(externalGame);
+        return res.status(201).json(game);
     }
 }
 
