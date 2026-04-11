@@ -38,6 +38,11 @@ class PlayerController {
             check('username', 'Please include a username.').notEmpty()
         ], this.catchAsyncRoute(this.updatePlayerUsername));
 
+        app.patch('/players/me/name', [
+            auth,
+            check('name', 'Please include a name.').notEmpty()
+        ], this.catchAsyncRoute(this.updatePlayerName));
+
         app.patch('/players/me/password', [
             auth,
             check('old_password', 'Please include your current password.').notEmpty(),
@@ -87,6 +92,13 @@ class PlayerController {
         const username = req.body.username;
         await this.playerService.updatePlayerUsername(playerId, username);
         return res.status(200).json({ message: 'Username updated.' });
+    }
+
+    async updatePlayerName(req, res) {
+        const playerId = req.player.id;
+        const name = req.body.name;
+        await this.playerService.updatePlayerName(playerId, name);
+        return res.status(200).json({ message: 'Name updated.' });
     }
 
     async updatePlayerPassword(req, res) {

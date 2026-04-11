@@ -4,35 +4,42 @@ import { HttpMethod } from "../util/serverRequests";
 
 type GameDataRow = {
     title: string,
-    publisher: string,
-    developer: string,
-    release: Date
+    publishers: string,
+    developers: string,
+    release: Date,
+    cover_url: string
 }
 
 const Fields = {
     GAME_TITLE: 'title',
-    PUBLISHER: 'publisher',
-    DEVELOPER: 'developer',
-    GAME_RELEASE: 'release'
+    PUBLISHERS: 'publishers',
+    DEVELOPERS: 'developers',
+    GAME_RELEASE: 'release_date',
+    COVER: 'cover_url'
 }
 
 const columnNames = (field: string): string => {
     switch (field) {
         case Fields.GAME_TITLE: return 'Title';
-        case Fields.PUBLISHER: return 'Publisher';
-        case Fields.DEVELOPER: return 'Developer';
+        case Fields.PUBLISHERS: return 'Publishers';
+        case Fields.DEVELOPERS: return 'Developers';
         case Fields.GAME_RELEASE: return 'Game Release';
+        case Fields.COVER: return 'Thumbnail';
     }
     return '';
 }
 
 const rowFieldBuilder = (field: string, data: GameDataRow): ReactElement => {
     let labelString: string = 'Error';
+    if(field === Fields.GAME_RELEASE) {
+        console.log(data[field]);
+    }
     switch (field) {
         case Fields.GAME_TITLE: labelString = data[field]; break;
-        case Fields.PUBLISHER: labelString = data['publishers'].length > 0 ? data['publishers'][0] : 'N/A'; break;
-        case Fields.DEVELOPER: labelString = data['developers'].length > 0 ? data['developers'][0] : 'N/A'; break;
-        case Fields.GAME_RELEASE: labelString = new Date(data['release_date']).toLocaleDateString(); break;
+        case Fields.PUBLISHERS: labelString = data[field].length > 0 ? data[field][0] : 'N/A'; break;
+        case Fields.DEVELOPERS: labelString = data[field].length > 0 ? data[field][0] : 'N/A'; break;
+        case Fields.GAME_RELEASE: labelString = new Date(data[field]).toLocaleDateString(); break;
+        case Fields.COVER: return <img src={data[field]}/>;
     }
     return <label key={field}>{labelString}</label>;
 }
@@ -44,8 +51,8 @@ const getSearchPoint = (text: string) => {
     return `games/external/search?query=${text}`;
 }
 
-export function AllGamesScreen() {
-    const rowFields: string[] = [Fields.GAME_TITLE, Fields.DEVELOPER, Fields.PUBLISHER, Fields.GAME_RELEASE];
+export function GameSearchScreen() {
+    const rowFields: string[] = [Fields.GAME_TITLE, Fields.DEVELOPERS, Fields.PUBLISHERS, Fields.GAME_RELEASE, Fields.COVER];
     const gameSearchText = useRef<HTMLInputElement | null>(null);
     const buttonSearchRef = useRef<HTMLButtonElement | null>(null);
     const [searchPoint, setSearchPoint] = useState<string | null>(null);

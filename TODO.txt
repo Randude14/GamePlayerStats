@@ -1,0 +1,10 @@
+
+--------- Current Objectives -----------
+
+1. Add UI elemenets for users to update their usernames and names.
+2. Add UI elements for user to update their password by confirming the current and entering the new one.
+3. Add endpoints to support users to update their emails through hashed tokens that expire.
+4. Add UI elements for users to re-enter their email and password, then fill in new email. Once they have clicked the link in the email. They can then update their page and log back in.
+5. Add UI elements for users to import in games from IGDB into the system. They can then add player stats to the game.
+6. Switch the table structure of the external game search page to a "card" structure.
+7. Add UI elements for players to add player stats by looking through the imported games.

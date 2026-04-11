@@ -123,6 +123,12 @@ class PlayerService {
             .update({ username });
     }
 
+    async updatePlayerName(id, name) {
+        await this.knex(Table.PLAYER_TABLE)
+            .where({ id })
+            .update({ name });
+    }
+
     async updatePlayerPassword(id, oldPassword, newPassword) {
         const playerFound = await this.knex(Table.PLAYER_TABLE).where({ id }).first();
 

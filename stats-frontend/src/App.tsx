@@ -5,7 +5,7 @@ import { AccountScreen } from './pages/AccountScreen'
 import { PlayerInfoScreen } from './pages/PlayerInfoScreen';
 import { AuthProvider } from './context/AuthContext';
 import { PlayerStatsAllPage } from './pages/PlayerStatsAllPage';
-import { AllGamesScreen } from './pages/AllGamesScreen';
+import { GameSearchScreen } from './pages/GameSearchScreen';
 import { useAuth } from './context/useAuth';
 
 const Page = {
@@ -43,7 +43,7 @@ function App() {
           <Navbar navButtons={navButtons} setPageId={setPageId}></Navbar>
           {pageId === Page.AllStats && <PlayerStatsAllPage/>}
           {pageId === Page.Account && <AccountScreen/>}
-          {pageId === Page.Games && <AllGamesScreen/>}
+          {pageId === Page.Games && <GameSearchScreen/>}
           {pageId === Page.MyStats && <PlayerInfoScreen/>}
       </AuthProvider>
     );

@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { fetchWithNoAuth, HttpMethod } from "../util/serverRequests";
+import { fetchWithAuth, fetchWithNoAuth, HttpMethod } from "../util/serverRequests";
 import './AccountScreen.css'
 import { useAuth } from "../context/useAuth";
 
@@ -54,21 +54,47 @@ function AccountLogin() {
     </div>
 }
 
+function UpdateAccountField({label, currValue, field, endpoint}) {
+    const inputContext = useRef<null | HTMLInputElement>(null);
+    const [message, setMessage] = useState(null);
+
+    console.log(endpoint);
+
+    const onClickHandler = async () => {
+        if(inputContext.current) {
+            const body = JSON.stringify({
+                [field]: inputContext.current.value
+            });
+            setMessage(`Updating...`);
+
+            const res = await fetchWithAuth(endpoint, HttpMethod.PATCH, body);
+            const data = await res.json();
+            const mess = data.message || data.msg || (res.ok ? 'Updated!' : 'Failed to update!');
+            setMessage(mess);
+        }
+    }
+
+    return <div>
+        <div>
+            <label>{label}</label>
+            <input defaultValue={currValue} ref={inputContext}></input>
+            <button onClick={onClickHandler}>Update</button>
+        </div>
+        <div>{message || ''}</div>
+    </div>
+}
+
 export function AccountScreen() {
     const { user, token, logout } = useAuth();
 
     if(token) {
         if(user) {
             return <>
-                <div><label>Username: {user.username}</label></div>
-                <div><label>Name: {user.name}</label></div>
+                <UpdateAccountField label='Username: ' currValue={user.username} field={'username'} endpoint={'players/me/username'}/>
+                <UpdateAccountField label='Name: ' currValue={user.name} field={'name'} endpoint={'players/me/name'}/>
                 <div><label>Email: {user.email}</label></div>
                 <div>
                     <button onClick={
-                        () => {
-                        }
-                    }>Update Profile</button>
-                                        <button onClick={
                         () => {
                             logout();
                         }

@@ -56,7 +56,8 @@ class ExternalGameAPIService {
                             search \"${safeSearch}\"; fields name, first_release_date,
                             involved_companies.company.name,
                             involved_companies.developer,
-                            involved_companies.publisher; 
+                            involved_companies.publisher,
+                            cover.url; 
                             where version_parent = null;
                             limit ${pageSize};
                             offset ${offset};   
@@ -71,6 +72,7 @@ class ExternalGameAPIService {
         const results = data.map(game => ({
             external_id: game.id,
             title: game.name,
+            cover_url: game.cover?.url,
             release_date: game.first_release_date ? 
                 new Date(game.first_release_date * 1000)
                 .toISOString().split('T')[0] : null,
