@@ -1,0 +1,19 @@
+.info-card-table {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 20px
+}
+
+.info-card {
+    border: 2px solid black;
+    background-color: rgba(0.7, 0.7, 0.7, 0.3);
+    padding: 10px;
+}
+
+.info-card-navigation,
+.info-card-navigation .button {
+    margin-inline: 20px;
+    margin-block-end: 20px;
+    font-size: 1rem;
+}

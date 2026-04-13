@@ -27,17 +27,17 @@ export interface PlayerStat {
 }
 
 export type RowObject = Record<string, unknown>;
-export interface InfoResult<T extends RowObject> {
+export interface InfoResults<T extends RowObject> {
   results?: T[]
 }
 
 
-export interface ExternalGameResult<T extends RowObject> extends InfoResult<T> {
-  query: string,
-  page: number,
-  pageSize: number,
-  totalResults: number,
-  totalPages: number,
-  hasPreviousPage: boolean,
-  hasNextPage: boolean
+export interface SearchReults<T extends RowObject> extends InfoResults<T> {
+  query?: string,
+  page?: number,
+  pageSize?: number,
+  totalResults?: number,
+  totalPages?: number,
+  hasPreviousPage?: boolean,
+  hasNextPage?: boolean
 }
