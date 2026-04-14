@@ -3,6 +3,8 @@ import { InfoTable } from "../components/InfoCardPage";
 import { fetchWithNoAuth, HttpMethod } from "../util/serverRequests";
 import './GameSearchScreen.css';
 
+const blankImage = import.meta.env.VITE_BLANK_IMAGE || './BlankGameCard.png';
+
 type GameDataRow = {
     title: string,
     publishers: string[],
@@ -38,7 +40,7 @@ const GameInfoCard = ({ data, onImport }: { data: GameDataRow, onImport: () => v
         };
 
     return <>
-        <div><img className="game-card-image" src={data.cover_url}/></div>
+        <div><img className="game-card-image" src={data.cover_url || blankImage}/></div>
         <div><label>{data.title}</label></div>
         <div><label>{ getFirstObject(data.developers) }</label></div>
         <div><label>{ getFirstObject(data.publishers) }</label></div>

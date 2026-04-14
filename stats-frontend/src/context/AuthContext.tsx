@@ -27,6 +27,10 @@ export const AuthProvider = ({ children }) => {
                     const _user: Player = await res.json();
                     setUser(_user);
                 }
+                else {
+                    setUser(null);
+                    logout();
+                }
             });
         }
     }, [token])

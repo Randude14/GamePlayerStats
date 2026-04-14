@@ -4,8 +4,8 @@ exports.up = async function (knex) {
         table.integer('external_id').nullable();
         table.string('external_source').nullable();
         table.string('cover_url').nullable();
-        table.json('developers').notNullable().defaultTo(JSON.stringify([]));
-        table.json('publishers').notNullable().defaultTo(JSON.stringify([]));
+        table.json('developers').nullable();
+        table.json('publishers').nullable();
     });
 
     // 2. Copy old single-value columns into new JSON array columns.

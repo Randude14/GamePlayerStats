@@ -1,0 +1,98 @@
+# -------------------
+# MySQL Deployment
+# -------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db
+  template:
+    metadata:
+      labels:
+        app: db
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: rootpassword
+            - name: MYSQL_DATABASE
+              value: player_stats
+            - name: MYSQL_USER
+              value: statsuser
+            - name: MYSQL_PASSWORD
+              value: statspassword
+          ports:
+            - containerPort: 3306
+
+---
+# -------------------
+# MySQL Service
+# -------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+spec:
+  selector:
+    app: db
+  ports:
+    - port: 3306
+      targetPort: 3306
+
+---
+# -------------------
+# API Deployment
+# -------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: player-stats-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: player-stats-api
+  template:
+    metadata:
+      labels:
+        app: player-stats-api
+    spec:
+      containers:
+        - name: player-stats-api
+          image: player-stats-api:v2
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 4000
+          env:
+            - name: PORT
+              value: '4000'
+            - name: DB_HOST
+              value: 'db'
+            - name: DB_USER
+              value: 'statsuser'
+            - name: DB_PASSWORD
+              value: 'statspassword'
+            - name: DB_NAME
+              value: 'player_stats'
+
+---
+# -------------------
+# API Service
+# -------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: player-stats-api-service
+spec:
+  selector:
+    app: player-stats-api
+  ports:
+    - port: 4000
+      targetPort: 4000
+  type: NodePort

@@ -40,7 +40,7 @@ const app = express();
         app.use(cors(corsOptions));
 
         // init database
-        const pool = await connecToDB(30);
+        const pool = await connecToDB(30, 5000);
 
         // migrate after we establish db connection
         await knex.migrate.latest();
@@ -69,7 +69,7 @@ const app = express();
         app.use(globalErrorHandler);
 
         const PORT = process.env.PORT || 3000;
-        app.listen(PORT, () => {
+        app.listen(PORT, '0.0.0.0', () => {
             console.log(`Server listening on port ${PORT}`);
         });
     } catch (err) {

@@ -8,8 +8,11 @@ services:
       - PORT=4000
       - TWITCH_CLIENT_ID=h0zgudvlf56ii2q4wpusij14t7dh3j
       - TWITCH_CLIENT_SECRET=qs9jbcscqxmafrjl03vimllcnjljbb
-    env_file:
-      - .env
+      - DB_HOST=db
+      - DB_USER=statsuser
+      - DB_PASSWORD=statspassword1234
+      - DB_NAME=player_stats
+      - DB_PORT=3306
     depends_on:
       - db
 
@@ -17,10 +20,10 @@ services:
     image: mysql:8.0
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASS}
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASS}
+      - MYSQL_ROOT_PASSWORD=rootpassword1234
+      - MYSQL_DATABASE=player_stats
+      - MYSQL_USER=statsuser
+      - MYSQL_PASSWORD=statspassword1234
     ports:
       - '3306:3306'
     volumes:
