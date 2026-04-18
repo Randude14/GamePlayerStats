@@ -19,6 +19,14 @@ type GameDataRow = {
     internal_id: number
 }
 
+const PageSizes = {
+    option10: '10',
+    option20: '20',
+    option30: '30',
+    option40: '40',
+    option50: '50'
+}
+
 const getFirstObject = (items: string[]): string => {
     return (items && items.length > 0) 
             ? items[0] : 'N/A';
@@ -66,7 +74,7 @@ function buildPageButtons<T extends RowObject>(onPrevClickHandler: ClickHandler,
     }
 }
 
-function getPageNum(pageNumToken: string): number {
+const getPageNum = (pageNumToken: string): number => {
     if(pageNumToken) {
        const pageToken: string = localStorage.getItem(pageNumToken);
        const page: number = +pageToken;
@@ -75,6 +83,15 @@ function getPageNum(pageNumToken: string): number {
     return 1;
 }
 
+const getPageSize = (pageSizeOption: string) => {
+    switch(pageSizeOption) {
+        case PageSizes.option10: return 10; break;
+        case PageSizes.option20: return 20; break;
+        case PageSizes.option30: return 30; break;
+        case PageSizes.option40: return 40; break;
+        default: return 50; break;
+    }
+}
 
 const getSearchPoint = (text: string, page: number, pageSize: number) => {
     if(!text) {
@@ -89,7 +106,8 @@ export function GameSearchScreen() {
     const [searchText, setSearchText] = useState<string | null>(null);
     const [refreshKey, setRefreshKey] = useState<number>(1);
     const [page, setPage] = useState<number>( getPageNum(gameSearchPageToken) );
-    const pageSize: number = 30;
+    const [pageSizeOption, setPageSizeOption] = useState<string>(PageSizes.option30);
+    const pageSize: number = getPageSize(pageSizeOption);
 
     const onTextChangeHandler = () => {
         if(buttonSearchRef.current && gameSearchText.current) {
@@ -124,6 +142,14 @@ export function GameSearchScreen() {
         <div>
                 <input type="search" ref={gameSearchText} onChange={onTextChangeHandler} placeholder="Enter game name here"></input>
                 <button onClick={onClickHandler} ref={buttonSearchRef}>Search</button>
+                <select value={pageSizeOption} onChange={(e) => {setPageSizeOption(e.target.value); setPage(1)}}>
+                    Page Size: 
+                    <option value={PageSizes.option10}>10</option>
+                    <option value={PageSizes.option20}>20</option>
+                    <option value={PageSizes.option30}>30</option>
+                    <option value={PageSizes.option40}>40</option>
+                    <option value={PageSizes.option50}>50</option>
+                </select>
         </div>
         <InfoTable<GameDataRow> key={`${searchPoint}-${refreshKey}`} auth={false} endpoint={searchPoint} 
                 httpMethod={HttpMethod.POST} infoCardBuilder={infoCardBuilder} pageNavBuilder={buildPageButtons<GameDataRow>(onPrevClickHandler, onNextClickHandler)} />

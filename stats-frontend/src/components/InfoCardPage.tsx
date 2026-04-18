@@ -9,7 +9,7 @@ interface ColumnInfoSettings<T extends RowObject> {
     endpoint: string, // API endpoint to get rows from
     httpMethod?: string, // HTTP method to use, GET if not passed
     infoCardBuilder: (data: RowObject) => ReactElement, // Function passed to build the info cards
-    pageNavBuilder: (results: SearchResults<T>) => ReactElement, // Function passed to build the page navigation buttons at the bottom 
+    pageNavBuilder?: (results: SearchResults<T>) => ReactElement, // Function passed to build the page navigation buttons at the bottom 
 }
 
 // Generics type allows table to work with an inhertied object type
