@@ -32,7 +32,7 @@ export interface InfoResults<T extends RowObject> {
 }
 
 
-export interface SearchReults<T extends RowObject> extends InfoResults<T> {
+export interface SearchResults<T extends RowObject> extends InfoResults<T> {
   query?: string,
   page?: number,
   pageSize?: number,
