@@ -4,9 +4,9 @@ import Navbar from './components/Navbar'
 import { AccountScreen } from './pages/AccountScreen'
 import { PlayerInfoScreen } from './pages/PlayerInfoScreen';
 import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
 import { PlayerStatsAllPage } from './pages/PlayerStatsAllPage';
 import { GameSearchScreen } from './pages/GameSearchScreen';
-import { useAuth } from './context/useAuth';
 
 const Page = {
   AllStats: 0,
@@ -40,11 +40,13 @@ function App() {
 
     return (
       <AuthProvider>
-          <Navbar navButtons={navButtons} setPageId={setPageId}></Navbar>
-          {pageId === Page.AllStats && <PlayerStatsAllPage/>}
-          {pageId === Page.Account && <AccountScreen/>}
-          {pageId === Page.Games && <GameSearchScreen/>}
-          {pageId === Page.MyStats && <PlayerInfoScreen/>}
+        <ToastProvider>
+            <Navbar navButtons={navButtons} setPageId={setPageId}></Navbar>
+            {pageId === Page.AllStats && <PlayerStatsAllPage/>}
+            {pageId === Page.Account && <AccountScreen/>}
+            {pageId === Page.Games && <GameSearchScreen/>}
+            {pageId === Page.MyStats && <PlayerInfoScreen/>}
+          </ToastProvider>
       </AuthProvider>
     );
 }

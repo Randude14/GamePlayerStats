@@ -1,0 +1,55 @@
+.toast {
+    position: fixed;
+    bottom: 24px;
+    min-width: 240px;
+    max-width: 360px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    color: white;
+    font-size: 1.2rem;
+    display: flex;
+    flex-flow: column;
+    justify-content: space-between;
+    align-self: center;
+    align-items: center;
+    gap: 12px;
+
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    z-index: 9999;
+}
+
+.toast-message {
+    text-align: center;
+}
+
+/* Showing and hiding toasts */
+.toast.show {
+    opacity: 0.9;
+    transform: translateY(0);
+}
+
+.toast.hide {
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+/* Toast popup types */
+.toast.success {
+    background-color: #2e7d32;
+}
+
+.toast.error {
+    background-color: #c62828;
+}
+
+.toast.info {
+    background-color: #1565c0;
+}
+
+.toast.warning {
+    background-color: #ed6c02;
+}

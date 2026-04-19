@@ -3,6 +3,7 @@ import { InfoTable } from "../components/InfoCardPage";
 import { fetchWithNoAuth, HttpMethod } from "../util/serverRequests";
 import './GameSearchScreen.css';
 import type { RowObject, SearchResults } from "../util/Models";
+import { useToast } from "../context/ToastContext";
 
 const gameSearchPageToken = 'game-search-page';
 
@@ -38,15 +39,17 @@ const importGame = async (external_id: number): Promise<boolean> => {
 }
 
 const GameInfoCard = ({ data, onImport }: { data: GameDataRow, onImport: () => void }): ReactElement => {
+    const { toast } = useToast();
 
     const importButtonHandler = async () =>{
             const imported = await importGame(data.external_id);
 
-            const message: string = imported ? 'Game imported!' : 'Something went wrong!';
-            console.log(message);
-
             if(imported) {
                 onImport();
+                toast.success('Game imported!');
+            }
+            else {
+                toast.error('Something went wrong. Could not import game.');
             }
         };
 
