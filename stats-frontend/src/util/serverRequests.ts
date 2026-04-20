@@ -13,7 +13,7 @@ function emptyBody(body: string): boolean {
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
 
-async function fetchWithNoAuth(apiCall: string, method: string, body: string=''): Promise<Response> {
+async function fetchWithNoAuth(apiCall: string, method: typeof HttpMethod[keyof typeof HttpMethod], body: string=''): Promise<Response> {
 
     // GET cannot have bodies even when empty
     if(method === HttpMethod.GET || emptyBody(body)) {
@@ -34,7 +34,7 @@ async function fetchWithNoAuth(apiCall: string, method: string, body: string='')
     }
 }
 
-async function fetchWithAuth(apiCall: string, method: string, body: string=''): Promise<Response> {
+async function fetchWithAuth(apiCall: string, method: typeof HttpMethod[keyof typeof HttpMethod], body: string=''): Promise<Response> {
     const token: string = localStorage.getItem('token') || '';
 
     if(token === '') {

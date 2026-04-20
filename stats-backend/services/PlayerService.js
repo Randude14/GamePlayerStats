@@ -36,7 +36,8 @@ class PlayerService {
 
         const { name, email, username, password } = data;
 
-        const existingPlayer = await this.knex(Table.PLAYER_TABLE).where({ email }).orWhere({ username }).first();
+        const existingPlayer = await this.knex(Table.PLAYER_TABLE)
+                .whereRaw('LOWER(email) = ?', [email.toLowerCase()]).orWhere({ username }).first();
 
         if(existingPlayer) {
             if(existingPlayer.email === email) {
@@ -49,7 +50,7 @@ class PlayerService {
 
         const [id] = await this.knex(Table.PLAYER_TABLE).insert({
             name: name,
-            email: email,
+            email: email.toLowerCase(),
             username: username,
             password_hash: password_hash,
             created_at: this.knex.fn.now()
@@ -72,7 +73,7 @@ class PlayerService {
 
     async authPlayer(data) {
         const { email, password } = data;
-        const playerFound = await this.knex(Table.PLAYER_TABLE).where({ email }).first();
+        const playerFound = await this.knex(Table.PLAYER_TABLE).whereRaw('LOWER(email) = ?', [email.toLowerCase()]).first();
 
         if(!playerFound) {
             throw new AppError('Invalid Credentials.', 401);
@@ -100,7 +101,8 @@ class PlayerService {
     }
 
     async updatePlayerEmail(id, email) {
-        const playerFound = await this.knex(Table.PLAYER_TABLE).where({ email }).first();
+        const playerFound = await this.knex(Table.PLAYER_TABLE)
+                                .whereRaw('LOWER(email) = ?', [email.toLowerCase()]).first();
 
         if(playerFound) {
             throw new AppError('There is a player already with that email.', 409);
@@ -108,7 +110,7 @@ class PlayerService {
 
         await this.knex(Table.PLAYER_TABLE)
             .where({ id })
-            .update({ email });
+            .update({ email: email.toLowerCase() });
     }
 
     async updatePlayerUsername(id, username) {

@@ -143,8 +143,9 @@ export function GameSearchScreen() {
 
     return <>
         <div>
+            <form action={onClickHandler}>
                 <input type="search" ref={gameSearchText} onChange={onTextChangeHandler} placeholder="Enter game name here"></input>
-                <button onClick={onClickHandler} ref={buttonSearchRef}>Search</button>
+                <button type="submit" onClick={onClickHandler} ref={buttonSearchRef}>Search</button>
                 <select value={pageSizeOption} onChange={(e) => {setPageSizeOption(e.target.value); setPage(1)}}>
                     Page Size: 
                     <option value={PageSizes.option10}>10</option>
@@ -153,6 +154,7 @@ export function GameSearchScreen() {
                     <option value={PageSizes.option40}>40</option>
                     <option value={PageSizes.option50}>50</option>
                 </select>
+            </form>
         </div>
         <InfoTable<GameDataRow> key={`${searchPoint}-${refreshKey}`} auth={false} endpoint={searchPoint} 
                 httpMethod={HttpMethod.POST} infoCardBuilder={infoCardBuilder} pageNavBuilder={buildPageButtons<GameDataRow>(onPrevClickHandler, onNextClickHandler)} />
