@@ -1,5 +1,5 @@
 // src/context/AuthContext.tsx
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect, useCallback } from "react";
 import type {Player} from "../util/Models"
 import { fetchWithAuth, HttpMethod } from "../util/serverRequests";
 
@@ -20,23 +20,28 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
     };
 
-    useEffect(() => {
-        if(token) {
-            fetchWithAuth('players/me', HttpMethod.GET).then(async (res) =>{
+    const refreshPlayer = useCallback(
+        () => {
+            fetchWithAuth('players/me', HttpMethod.GET).then(async (res) => {
                 if(res.ok) {
-                    const _user: Player = await res.json();
-                    setUser(_user);
+                            const _user: Player = await res.json();
+                            setUser(_user);
                 }
                 else {
                     setUser(null);
                     logout();
                 }
             });
+        }, []);
+
+    useEffect(() => {
+        if(token) {
+            refreshPlayer();
         }
-    }, [token])
+    }, [refreshPlayer, token])
 
     return (
-        <AuthContext.Provider value={{ user, token, login, logout }}>
+        <AuthContext.Provider value={{ user, token, login, logout, refreshPlayer }}>
             {children}
         </AuthContext.Provider>
     );

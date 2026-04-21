@@ -1,3 +1,49 @@
+.profile-card {
+    border: 5px solid #000000;
+    background-color: #76767676;
+    padding-block: 40px;
+    margin-block-end: 50px;
+    font-size: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    row-gap: 20px;
+}
+
+.update-password {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    row-gap: 20px;
+    padding-inline: 30px;
+}
+
+.update-info {
+    display: grid;
+    grid-template-columns: .5fr 1fr .3fr;
+    gap: 20px;
+    padding-inline: 30px;
+}
+
+.warning-message {
+    text-decoration-color: #a41515;
+}
+
+.account-action {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    flex-flow: column;
+}
+
+.action-button {
+    font-size: 24px;
+}
+
+#delete-account {
+    background-color: #ff4d4d;
+    border: #a41515;
+    color: #000000;
+}
+
 .login_div {
     display: flex;
     flex-direction: column;

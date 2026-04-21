@@ -3,6 +3,7 @@ import { useAuth } from "../context/useAuth";
 import { fetchWithAuth, fetchWithNoAuth, HttpMethod } from "../util/serverRequests";
 import './InfoCardPage.css'
 import type { RowObject, SearchResults } from "../util/Models";
+import { extractMessage } from "../util/Helpers";
 
 interface ColumnInfoSettings<T extends RowObject> {
     auth: boolean, // whether to use user token
@@ -40,7 +41,7 @@ export function InfoTable<T extends RowObject>({auth, endpoint, httpMethod, info
             // for now assume endpoint already has the correct format before adding, this should probably get fixed later
             const res = await endpointFetch(endpoint, httpMethod || HttpMethod.GET);
 
-            let data: SearchResults<T> = null;
+            let data: Promise<any> = null;
             try {
                 data = await res.json();
             } catch {
@@ -48,22 +49,17 @@ export function InfoTable<T extends RowObject>({auth, endpoint, httpMethod, info
             }
 
             if (!res.ok) {
-                const err = data as
-                | { message?: string; msg?: string; errors?: { msg?: string }[] }
-                | null;
+                const msg = extractMessage(data, "Failed to load data.");
 
-                let msg = err?.message || err?.msg;
-                if (!msg && Array.isArray(err?.errors)) {
-                    msg = err?.errors[0]?.msg;
-                }
-
-                setErrorMessage(msg || "Failed to load data.");
+                setErrorMessage(msg);
                 setSearchResults(null);
                 setLoading(false);
                 return;
             }
 
-            setSearchResults(data);
+            const results = data as SearchResults<T>;
+
+            setSearchResults(results);
             setLoading(false);
         };
 
