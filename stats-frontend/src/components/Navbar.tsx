@@ -1,20 +1,16 @@
+import { Link } from "react-router-dom";
+import { WebPageRoutes } from "../util/WebPages";
+import { useAuth } from "../context/useAuth";
+import "./Navbar.css"
 
-interface NavbarSettings {
-    navButtons: string[],
-    setPageId: (index: number) => void
-}
 
-export default function Navbar({navButtons, setPageId}: NavbarSettings) {
+export default function Navbar() {
+    const { token } = useAuth();
 
-    const clickHandler = (index: number) => {
-        setPageId(index);
-    }
-
-    return <>
-        <div className="navbar">
-            {
-                navButtons.map((nb: string, index: number) => <button key={nb} onClick={() => clickHandler(index)}>{nb}</button>)
-            } 
-        </div> 
-    </>
+    return <nav className="navbar-links">
+        <Link className="navbar-item" to={WebPageRoutes.ALL_STATS}>All Stats</Link>
+        <Link className="navbar-item" to={WebPageRoutes.MY_STATS}>My Stats</Link>
+        <Link className="navbar-item" to={WebPageRoutes.GAMES}>Games</Link>
+        <Link className="navbar-item" to={WebPageRoutes.ACCOUNT}>{token ? "Account" : "Sign In"}</Link>
+    </nav>
 }

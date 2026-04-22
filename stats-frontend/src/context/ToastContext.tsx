@@ -56,7 +56,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const showToast = useCallback(
-        (message: string, type: ToastType = "info", duration: number = 5000) => {
+        (message: string, type: ToastType = "info", duration: number = 3000) => {
             clearTimers();
 
             setToast({ message, type, duration });

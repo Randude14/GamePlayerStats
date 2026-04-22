@@ -21,21 +21,23 @@ export function AccountScreen() {
     }
 
     useEffect(() => {
-        const fetchData = async () => {
-            const res = await fetchWithNoAuth(`player_stats/dashboard/${user.id}`, HttpMethod.GET);
+        if(user && user.id) {
+            const fetchData = async () => {
+                const res = await fetchWithNoAuth(`player_stats/dashboard/${user.id}`, HttpMethod.GET);
 
-            if(res.ok) {
-                const info: PlayerDashboard = await res.json();
-                setDashboardInfo(info);
-            }
-            else {
-                toast.error('Failed to get dashboard information for user ' + user.username);
+                if(res.ok) {
+                    const info: PlayerDashboard = await res.json();
+                    setDashboardInfo(info);
+                }
+                else {
+                    toast.error('Failed to get dashboard information for user ' + user.username);
+                }
+
+                setIsLoading(false);
             }
 
-            setIsLoading(false);
+            fetchData();
         }
-
-        fetchData();
     }, [user, toast]);
 
     if(token) {
@@ -56,8 +58,8 @@ export function AccountScreen() {
 
                     <div className="profile-card">
                         <h3>Update Info</h3>
-                        <UpdateAccountField label='Username: ' currValue={user.username} field={'username'} endpoint={'players/me/username'}/>
-                        <UpdateAccountField label='Name: ' currValue={user.name} field={'name'} endpoint={'players/me/name'}/>
+                        <UpdateAccountField label='Username: ' currValue={dashboardInfo.username} field={'username'} endpoint={'players/me/username'}/>
+                        <UpdateAccountField label='Name: ' currValue={dashboardInfo.name} field={'name'} endpoint={'players/me/name'}/>
                     </div>
                     <div className="profile-card">
                         <h3>Update Password</h3>
@@ -69,8 +71,11 @@ export function AccountScreen() {
                     </div>
                 </>
             }
-            else {
+            else if(user) {
                 return <>Failed to grab info for {user.username}</>
+            }
+            else {
+                return <></>
             }
         }
         else {
