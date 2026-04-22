@@ -1,47 +1,77 @@
-import { useRef, useState } from "react";
-import { fetchWithAuth, HttpMethod } from "../util/serverRequests";
+import { useEffect, useRef, useState } from "react";
+import { fetchWithAuth, fetchWithNoAuth, HttpMethod } from "../util/serverRequests";
 import { useAuth } from "../context/useAuth";
 import { AccountLoginPage } from "../components/AccountLoginPage";
 import { AccountCreatePage } from "../components/AccountCreatePage";
 import './AccountScreen.css'
 import { useToast } from "../context/ToastContext";
 import { extractMessage } from "../util/Helpers";
+import type { PlayerDashboard } from "../util/Models";
 
 export function AccountScreen() {
     const { user, token, logout } = useAuth();
+    const { toast } = useToast();
     const [createAccount, setCreateAccount] = useState(false);
-
+    const [ dashboardInfo, setDashboardInfo ] = useState<PlayerDashboard | null>(null);
+    const [isLoading, setIsLoading ] = useState(true);
+ 
     const logoutHandler = () => {
         logout();
         setCreateAccount(false);
     }
 
-    if(token) {
-        if(user) {
-            return <>
-                {/* Account Details Card */}
-                <h2>My Account</h2>
-                <div className="profile-card">
-                    <div><label>{`Username: ${user.username}`}</label></div>
-                    <div><label>{`Name: ${user.name}`}</label></div>
-                    <div><label>{`Email: ${user.email}`}</label></div>
-                    <div><label>{`Member Since: ${new Date(user.created_at).toLocaleDateString()}`}</label></div>
-                </div>
+    useEffect(() => {
+        const fetchData = async () => {
+            const res = await fetchWithNoAuth(`player_stats/dashboard/${user.id}`, HttpMethod.GET);
 
-                <div className="profile-card">
-                    <h3>Update Info</h3>
-                    <UpdateAccountField label='Username: ' currValue={user.username} field={'username'} endpoint={'players/me/username'}/>
-                    <UpdateAccountField label='Name: ' currValue={user.name} field={'name'} endpoint={'players/me/name'}/>
-                </div>
-                <div className="profile-card">
-                    <h3>Update Password</h3>
-                    <UpdatePassword/>
-                </div>
-                <div className="account-action">
-                    <button className="action-button" onClick={logoutHandler}>Logout</button>
-                    <button className="action-button" id="delete-account">Delete Account</button>
-                </div>
-            </>
+            if(res.ok) {
+                const info: PlayerDashboard = await res.json();
+                setDashboardInfo(info);
+            }
+            else {
+                toast.error('Failed to get dashboard information for user ' + user.username);
+            }
+
+            setIsLoading(false);
+        }
+
+        fetchData();
+    }, [user, toast]);
+
+    if(token) {
+        if(! isLoading) {
+
+            if(dashboardInfo) {
+                return <>
+                    {/* Account Details Card */}
+                    <h2>My Account</h2>
+                    <div className="profile-card">
+                        <div><label>{`Username: ${dashboardInfo.username}`}</label></div>
+                        <div><label>{`Name: ${dashboardInfo.name}`}</label></div>
+                        <div><label>{`Email: ${dashboardInfo.email}`}</label></div>
+                        <div><label>{`Total Games Played: ${dashboardInfo.total_games}`}</label></div>
+                        <div><label>{`Total Hours Played: ${dashboardInfo.total_hours}`}</label></div>
+                        <div><label>{`Member Since: ${new Date(dashboardInfo.created_at).toLocaleDateString()}`}</label></div>
+                    </div>
+
+                    <div className="profile-card">
+                        <h3>Update Info</h3>
+                        <UpdateAccountField label='Username: ' currValue={user.username} field={'username'} endpoint={'players/me/username'}/>
+                        <UpdateAccountField label='Name: ' currValue={user.name} field={'name'} endpoint={'players/me/name'}/>
+                    </div>
+                    <div className="profile-card">
+                        <h3>Update Password</h3>
+                        <UpdatePassword/>
+                    </div>
+                    <div className="account-action">
+                        <button className="action-button" onClick={logoutHandler}>Logout</button>
+                        <button className="action-button" id="delete-account">Delete Account</button>
+                    </div>
+                </>
+            }
+            else {
+                return <>Failed to grab info for {user.username}</>
+            }
         }
         else {
             return <label>Loading...</label>
@@ -123,10 +153,8 @@ function UpdatePassword() {
 
 function UpdateAccountField({label, currValue, field, endpoint}) {
     const inputRef = useRef<null | HTMLInputElement>(null);
-    const { refreshPlayer, user } = useAuth();
+    const { refreshPlayer } = useAuth();
     const { toast } = useToast();
-
-    console.log(endpoint);
 
     const onClickHandler = async () => {
         if(inputRef.current) {

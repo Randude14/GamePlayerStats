@@ -65,6 +65,22 @@ class PlayerStatService {
         return stat;
     }
 
+    async getPlayerDashboardInfo(player_id) {
+        
+        const dashboardInfo = await this.knex(`${Table.PLAYER_STAT_TABLE} as ps`)
+        .where('ps.player_id', player_id)
+        .sum('ps.hours_played as total_hours')
+        .count('ps.game_id as total_games')
+        .first();
+
+        const totalHours = dashboardInfo["total_hours"];
+        const totalGames = dashboardInfo["total_games"];
+        if(! totalHours) dashboardInfo["total_hours"] = 0;
+        if(! totalGames) dashboardInfo["total_games"] = 0;
+
+        return dashboardInfo;
+    }
+
     async createPlayerStat(player_id, data) {
         const {game_id, hours_played, date_purchased} = data;
 

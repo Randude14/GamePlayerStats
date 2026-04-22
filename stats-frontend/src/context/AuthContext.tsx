@@ -24,8 +24,8 @@ export const AuthProvider = ({ children }) => {
         () => {
             fetchWithAuth('players/me', HttpMethod.GET).then(async (res) => {
                 if(res.ok) {
-                            const _user: Player = await res.json();
-                            setUser(_user);
+                    const _user: Player = await res.json();
+                    setUser(_user);
                 }
                 else {
                     setUser(null);

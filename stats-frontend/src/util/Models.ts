@@ -26,6 +26,11 @@ export interface PlayerStat {
   release: string;
 }
 
+export interface PlayerDashboard extends Player {
+  total_games: number,
+  total_hours: number
+}
+
 export type RowObject = Record<string, unknown>;
 export interface InfoResults<T extends RowObject> {
   results?: T[]

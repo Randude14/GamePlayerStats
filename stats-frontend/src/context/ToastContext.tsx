@@ -31,16 +31,18 @@ interface ToastContextType {
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 const FADE_OUT_MS = 300;
-
+const TOAST_VISIBLE_DELAY = 100;
 
 export function ToastProvider({ children }: { children: ReactNode }) {
     const [toast, setToast] = useState<ToastData | null>(null);
     const [visible, setVisible] = useState(false);
 
+    const updateTimer = useRef<number | null>(null);
     const hideTimer = useRef<number | null>(null);
     const removeTimer = useRef<number | null>(null);
 
     const clearTimers = () => {
+        if (updateTimer.current) window.clearTimeout(updateTimer.current);
         if (hideTimer.current) window.clearTimeout(hideTimer.current);
         if (removeTimer.current) window.clearTimeout(removeTimer.current);
     };
@@ -58,13 +60,27 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             clearTimers();
 
             setToast({ message, type, duration });
-            setVisible(true);
 
-            hideTimer.current = window.setTimeout(() => {
-                hideToast();
-            }, duration);
+            const setupToastMessage = () => {
+                setVisible(true);
+
+                hideTimer.current = window.setTimeout(() => {
+                    hideToast();
+                }, duration);
+            }
+
+            if(visible) {
+                setVisible(false);
+                updateTimer.current = window.setTimeout(() => {
+                    setupToastMessage();
+                }, TOAST_VISIBLE_DELAY);
+            }
+            else {
+                setupToastMessage();
+            }
+
         },
-        [hideToast]
+        [hideToast, visible]
     );
 
     useEffect(() => {
