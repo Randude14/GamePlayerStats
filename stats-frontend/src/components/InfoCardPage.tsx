@@ -86,9 +86,9 @@ export function InfoTable<T extends RowObject>({auth, endpoint, httpMethod, info
 
     return <>
         <div className="info-card-table">
-            {searchResults.results && searchResults.results.map(row => {
+            {searchResults.results && searchResults.results.map((row, index) => {
 
-                return <div className="info-card">
+                return <div className="info-card" key={index}>
                     {infoCardBuilder(row) || <>Null</>}
                 </div>;
             })}

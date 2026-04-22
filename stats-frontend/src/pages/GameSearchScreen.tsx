@@ -4,6 +4,8 @@ import { fetchWithNoAuth, HttpMethod } from "../util/serverRequests";
 import './GameSearchScreen.css';
 import type { RowObject, SearchResults } from "../util/Models";
 import { useToast } from "../context/ToastContext";
+import { useSearchParams } from "react-router-dom";
+import { useAuth } from "../context/useAuth";
 
 const gameSearchPageToken = 'game-search-page';
 
@@ -39,7 +41,9 @@ const importGame = async (external_id: number): Promise<boolean> => {
 }
 
 const GameInfoCard = ({ data, onImport }: { data: GameDataRow, onImport: () => void }): ReactElement => {
+    const { token } = useAuth();
     const { toast } = useToast();
+    const isLoggedIn = !!token;
 
     const importButtonHandler = async () =>{
             const imported = await importGame(data.external_id);
@@ -53,16 +57,17 @@ const GameInfoCard = ({ data, onImport }: { data: GameDataRow, onImport: () => v
             }
         };
 
-    return <>
+    return <div className="game-card">
         <div><img className="game-card-image" src={data.cover_url || blankImage}/></div>
         <div><label>{data.title}</label></div>
         <div><label>{ getFirstObject(data.developers) }</label></div>
         <div><label>{ getFirstObject(data.publishers) }</label></div>
         <div><label>{ data.release_date ? new Date(data.release_date).toLocaleDateString() : 'N/A' }</label></div>
 
-        {!data.isImported && <button onClick={importButtonHandler}>Import Game</button>}
-        {data.isImported && <button disabled>Game Imported</button>}
-    </>
+        {!data.isImported && <div><button onClick={importButtonHandler}>Import Game</button></div>}
+        {data.isImported && <div><button disabled>Game Imported</button></div>}
+        {data.isImported && <div><button disabled={!isLoggedIn}>Add To Profile</button></div>}
+    </div>
 }
 
 type ClickHandler = () => void;
@@ -77,25 +82,6 @@ function buildPageButtons<T extends RowObject>(onPrevClickHandler: ClickHandler,
     }
 }
 
-const getPageNum = (pageNumToken: string): number => {
-    if(pageNumToken) {
-       const pageToken: string = localStorage.getItem(pageNumToken);
-       const page: number = +pageToken;
-       return isNaN(page) ? 1 : Math.max(page, 1);
-    }
-    return 1;
-}
-
-const getPageSize = (pageSizeOption: string) => {
-    switch(pageSizeOption) {
-        case PageSizes.option10: return 10; break;
-        case PageSizes.option20: return 20; break;
-        case PageSizes.option30: return 30; break;
-        case PageSizes.option40: return 40; break;
-        default: return 50; break;
-    }
-}
-
 const getSearchPoint = (text: string, page: number, pageSize: number) => {
     if(!text) {
         return null;
@@ -106,11 +92,11 @@ const getSearchPoint = (text: string, page: number, pageSize: number) => {
 export function GameSearchScreen() {
     const gameSearchText = useRef<HTMLInputElement | null>(null);
     const buttonSearchRef = useRef<HTMLButtonElement | null>(null);
-    const [searchText, setSearchText] = useState<string | null>(null);
     const [refreshKey, setRefreshKey] = useState<number>(1);
-    const [page, setPage] = useState<number>( getPageNum(gameSearchPageToken) );
-    const [pageSizeOption, setPageSizeOption] = useState<string>(PageSizes.option30);
-    const pageSize: number = getPageSize(pageSizeOption);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const page: number = Number(searchParams.get('page') || 1);
+    const pageSize: number = Number(searchParams.get('pageSize') || 30);
+    const searchText: string = searchParams.get('query') || "";
 
     const onTextChangeHandler = () => {
         if(buttonSearchRef.current && gameSearchText.current) {
@@ -122,17 +108,26 @@ export function GameSearchScreen() {
         return <GameInfoCard data={data} onImport={onImportHandler}/>
     }
 
+    const updateSearchParams = (_page: number | string, _pageSize: number | string) => {
+        const query = gameSearchText.current?.value || '';
+
+        setSearchParams({
+            query,
+            pageSize: String(_pageSize),
+            page: String(_page),
+        })
+    }
+
     // Button handlers
     const onClickHandler = () => {
-        setSearchText(gameSearchText.current ? gameSearchText.current.value : '');
-        setPage(1);
+        updateSearchParams(page, pageSize);
     }
 
     const onPrevClickHandler = () => {
-        setPage(Math.max(page-1, 1));
+        updateSearchParams(page-1, pageSize);
     }
     const onNextClickHandler = () => {
-        setPage(page+1);
+        updateSearchParams(page+1, pageSize);
     }
 
     const onImportHandler = () => {
@@ -143,16 +138,23 @@ export function GameSearchScreen() {
 
     return <>
         <div>
-            <form action={onClickHandler}>
-                <input type="search" ref={gameSearchText} onChange={onTextChangeHandler} placeholder="Enter game name here"></input>
-                <button type="submit" onClick={onClickHandler} ref={buttonSearchRef}>Search</button>
-                <select value={pageSizeOption} onChange={(e) => {setPageSizeOption(e.target.value); setPage(1)}}>
+            <form onSubmit={(e) => {
+                e.preventDefault();
+                onClickHandler();
+            }}>
+                <input type="search" ref={gameSearchText} onChange={onTextChangeHandler} 
+                        placeholder="Enter game name here" defaultValue={searchText} /> 
+                <button type="submit" ref={buttonSearchRef}>Search</button>
+                <select value={String(pageSize)} onChange={(e) => {
+
+                    updateSearchParams(page, e.target.value)
+                }}>
                     Page Size: 
-                    <option value={PageSizes.option10}>10</option>
-                    <option value={PageSizes.option20}>20</option>
-                    <option value={PageSizes.option30}>30</option>
-                    <option value={PageSizes.option40}>40</option>
-                    <option value={PageSizes.option50}>50</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="30">30</option>
+                    <option value="40">40</option>
+                    <option value="50">50</option>
                 </select>
             </form>
         </div>

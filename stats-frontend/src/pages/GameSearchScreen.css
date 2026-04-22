@@ -1,3 +1,9 @@
+.game-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 .game-card-image {
     max-width: 200px;
     height: auto;
