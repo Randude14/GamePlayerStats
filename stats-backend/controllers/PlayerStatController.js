@@ -23,7 +23,7 @@ class PlayerStatController {
 
         app.get('/player_stats/me', auth, this.catchAsyncRoute(this.getAllPlayerStatsForMe));
 
-        app.get('/player_stats/dashboard/:player_id', this.catchAsyncRoute(this.captureDashboardInfo))
+        app.get('/player_stats/dashboard/:player_id', this.catchAsyncRoute(this.captureDashboardInfo));
 
         app.post('/player_stats', [
             auth,

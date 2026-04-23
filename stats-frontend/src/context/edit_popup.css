@@ -19,3 +19,11 @@
     padding: 40px;
     background-color: #444444;
 }
+
+.edit-popup-actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    margin-block-start: 15px;
+    gap: 15px;
+}

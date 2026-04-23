@@ -27,7 +27,7 @@ const BuildPopup = (settings: EditPopupSettings, closeHandler: () => void) => {
                 }}>
 
                 {settings.elementBuilder()}
-                {<div>
+                {<div className="edit-popup-actions">
                     <button type="submit">{Number(settings.type) === EditType.ADD ? 'Save' : 'Update'}</button>
                     <button onClick={closeHandler}>Cancel</button>
                 </div>}

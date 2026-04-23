@@ -22,8 +22,8 @@ export interface PlayerStat {
   hours_played: string;
   date_purchased: string;
   created_at: string;
-  title: string;
-  release: string;
+  title?: string;
+  release?: string;
 }
 
 export interface PlayerDashboard extends Player {

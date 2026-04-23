@@ -88,6 +88,7 @@ export function GameSearchScreen() {
     const [refreshKey, setRefreshKey] = useState<number>(1);
     const [searchParams, setSearchParams] = useSearchParams();
 
+    const { user } = useAuth();
     const { showPopup } = useEditPopup();
     const { toast } = useToast();
 
@@ -102,21 +103,26 @@ export function GameSearchScreen() {
         }
     }
 
-    const playerStatSaveHandler = async (gameId: number, date_purchased: string, hours_played: number) => {
+    const playerStatSaveHandler = async (statId: number, gameId: number, date_purchased: string, hours_played: number) => {
+        const statEndpoint = statId >= 1 ? `player_stats/${statId}` : 'player_stats';
         const body = JSON.stringify({ game_id: gameId, date_purchased, hours_played });
-        const res = await fetchWithAuth('player_stats', HttpMethod.POST, body);
+        const res = await fetchWithAuth(statEndpoint, statId >= 1 ? HttpMethod.PATCH : HttpMethod.POST, body);
 
         if(res.ok) {
-            toast.success('Game added to profile.');
+            const toastMessage = statId >= 1 ?
+                'Game stat added to profile.' :
+                'Game stat updated.';
+
+            toast.success(toastMessage);
         }
         else {
             toast.error('Failed to add to profile.');
         }
     }
 
-    const infoCardBuilder = (data: GameDataRow) => {
+    const infoCardBuilder =  (data: GameDataRow) => {
 
-        const addGameStatHandler = () => {
+        const addGameStatHandler = async () => {
             const game: Game = {
                 title: data.title,
                 publisher: data.publishers.length ? data.publishers[0] : 'N/A',
@@ -126,9 +132,9 @@ export function GameSearchScreen() {
                 created_at: null
             }
 
-            const popupSettings: EditPopupSettings = PlayerStatEdit({
+            const popupSettings: EditPopupSettings = await PlayerStatEdit({
                 game,
-                type: EditType.ADD,
+                userId: user.id,
                 submitCallback: playerStatSaveHandler
             });
 
@@ -171,20 +177,18 @@ export function GameSearchScreen() {
                 e.preventDefault();
                 onClickHandler();
             }}>
-                <input type="search" ref={gameSearchText} onChange={onTextChangeHandler} 
-                        placeholder="Enter game name here" defaultValue={searchText} /> 
-                <button type="submit" ref={buttonSearchRef}>Search</button>
-                <select value={String(pageSize)} onChange={(e) => {
+                <div className="game-search">
+                    <input type="search" ref={gameSearchText} onChange={onTextChangeHandler} 
+                            placeholder="Enter game name here" defaultValue={searchText} /> 
+                    <button type="submit" ref={buttonSearchRef}>Search</button>
+                    <select value={String(pageSize)} onChange={(e) => {
 
-                    updateSearchParams(page, e.target.value)
-                }}>
-                    Page Size: 
-                    <option value="10">10</option>
-                    <option value="20">20</option>
-                    <option value="30">30</option>
-                    <option value="40">40</option>
-                    <option value="50">50</option>
-                </select>
+                            updateSearchParams(page, e.target.value)
+                        }}>
+                        {["10", "20", "30", "40", "50"]
+                            .map(value => <option value={value}>{value}</option>)}
+                    </select>
+                </div>
             </form>
         </div>
         <InfoTable<GameDataRow> key={`${searchPoint}-${refreshKey}`} auth={false} endpoint={searchPoint} 
