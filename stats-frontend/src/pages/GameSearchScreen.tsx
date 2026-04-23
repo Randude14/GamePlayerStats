@@ -205,7 +205,7 @@ export function GameSearchScreen() {
                     </select>
                     
                 </div>
-                <div>
+                <div className="game-search">
                     <input type="checkbox" id={INTERNAL_CHECKBOX_ID} checked={internal} onChange={
                         (e) => {
                             e.preventDefault();
