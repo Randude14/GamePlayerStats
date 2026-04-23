@@ -65,7 +65,7 @@ spec:
     spec:
       containers:
         - name: player-stats-api
-          image: player-stats-api:v2
+          image: player-stats-api:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 4000
@@ -80,6 +80,10 @@ spec:
               value: 'statspassword'
             - name: DB_NAME
               value: 'player_stats'
+            - name: TWITCH_CLIENT_ID
+              value: 'h0zgudvlf56ii2q4wpusij14t7dh3j'
+            - name: TWITCH_CLIENT_SECRET
+              value: 'qs9jbcscqxmafrjl03vimllcnjljbb'
 
 ---
 # -------------------
@@ -90,9 +94,10 @@ kind: Service
 metadata:
   name: player-stats-api-service
 spec:
+  type: NodePort
   selector:
     app: player-stats-api
   ports:
     - port: 4000
       targetPort: 4000
-  type: NodePort
+      nodePort: 30080

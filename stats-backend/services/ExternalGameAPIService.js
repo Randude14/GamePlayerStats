@@ -69,41 +69,38 @@ class ExternalGameAPIService {
         
         // Get imported games with external ids and sort for easy searching
         let importedGamesExternal = await this.knex(Table.GAME_TABLE)
-                .whereNotNull('external_id')
                 .select('id', 'title', 'external_id')
                 .orderBy([
                     {column: 'external_id', 'order': 'asc'}, 
                     {column: 'title', 'order': 'asc'}
-                            ]);
+                            ])
 
         const importedMap = new Map(
-                importedGamesExternal.map(g => [g.external_id, g])
-        );
+                      importedGamesExternal.map(g => [g.external_id, g])
+                );
 
         const data = await res.json();
 
-        const results = data.map(game => {
-            return {
-                external_id: game.id,
-                title: game.name,
-                cover_url: game.cover?.url
-                    ? `https:${game.cover.url.replace('t_thumb', 't_cover_big')}` // convert thumbnails to bigger images
-                    : null,
-                release_date: game.first_release_date ? 
-                    new Date(game.first_release_date * 1000)
-                    .toISOString().split('T')[0] : null,
-                developers: game.involved_companies
-                    ?.filter(comp => comp.developer)
-                    .map(comp => comp.company?.name)
-                    .filter(Boolean) || [],
-                publishers: game.involved_companies
-                    ?.filter(comp => comp.publisher)
-                    .map(comp => comp.company?.name)
-                    .filter(Boolean) || [],
-                isImported: importedMap.has(game.id),
-                internal_id: importedMap.get(game.id)?.id || null
-            };
-        });
+        const results = data.map(game => ({
+            external_id: game.id,
+            title: game.name,
+            cover_url: game.cover?.url
+                ? `https:${game.cover.url.replace('t_thumb', 't_cover_big')}` // convert thumbnails to bigger images
+                : null,
+            release_date: game.first_release_date ? 
+                new Date(game.first_release_date * 1000)
+                .toISOString().split('T')[0] : null,
+            developers: game.involved_companies
+                ?.filter(comp => comp.developer)
+                .map(comp => comp.company?.name)
+                .filter(Boolean) || [],
+            publishers: game.involved_companies
+                ?.filter(comp => comp.publisher)
+                .map(comp => comp.company?.name)
+                .filter(Boolean) || [],
+            isImported: importedMap.has(game.id),
+            internal_id: importedMap.get(game.id)?.id || null
+        }));
 
         const countRes = await fetch('https://api.igdb.com/v4/games/count',
                             this.getRequestInit(token, `

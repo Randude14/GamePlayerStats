@@ -6,10 +6,12 @@ import type { Game, RowObject, SearchResults } from "../util/Models";
 import { useToast } from "../context/ToastContext";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
-import { PlayerStatEdit } from "../components/PlayerStatEdit";
-import { EditType, useEditPopup, type EditPopupSettings } from "../context/EditPopupContext";
+import { PlayerStatPopupGenerator } from "../components/PlayerStatPopupGenerator";
+import { useEditPopup, type EditPopupSettings } from "../context/EditPopupContext";
 
 const blankImage = import.meta.env.VITE_BLANK_IMAGE || './BlankGameCard.png';
+
+const INTERNAL_CHECKBOX_ID: string = "internal-checkbox";
 
 type GameDataRow = {
     title: string,
@@ -74,9 +76,12 @@ function buildPageButtons<T extends RowObject>(onPrevClickHandler: ClickHandler,
     }
 }
 
-const getSearchPoint = (text: string, page: number, pageSize: number) => {
+const getSearchPoint = (text: string, page: number, pageSize: number, internal: boolean) => {
     if(!text) {
         return null;
+    }
+    if(internal) {
+        return `games/internal/search?query=${text}&pageSize=${pageSize}&page=${page}`;
     }
     return `games/external/search?query=${text}&pageSize=${pageSize}&page=${page}`;
 }
@@ -95,6 +100,7 @@ export function GameSearchScreen() {
     const page: number = Number(searchParams.get('page') || 1);
     const pageSize: number = Number(searchParams.get('pageSize') || 30);
     const searchText: string = searchParams.get('query') || "";
+    const internal: boolean = searchParams.has('internal') ? searchParams.get('internal') === 'true' : true;
 
 
     const onTextChangeHandler = () => {
@@ -132,7 +138,7 @@ export function GameSearchScreen() {
                 created_at: null
             }
 
-            const popupSettings: EditPopupSettings = await PlayerStatEdit({
+            const popupSettings: EditPopupSettings = await PlayerStatPopupGenerator({
                 game,
                 userId: user.id,
                 submitCallback: playerStatSaveHandler
@@ -143,33 +149,42 @@ export function GameSearchScreen() {
         return <GameInfoCard data={data} onImport={onImportHandler} addGameStatHandler={addGameStatHandler}/>
     }
 
-    const updateSearchParams = (_page: number | string, _pageSize: number | string) => {
+    const updateSearchParams = (_page: number | string, _pageSize: number | string, _internal: boolean | string) => {
         const query = gameSearchText.current?.value || '';
 
         setSearchParams({
             query,
             pageSize: String(_pageSize),
             page: String(_page),
+            internal: String(_internal)
         })
+    }
+
+    const internalLabelClicked = () => {
+        const checkBoxRef: HTMLInputElement = document.getElementById(INTERNAL_CHECKBOX_ID) as HTMLInputElement;
+        if(checkBoxRef) {
+            const value: boolean = Boolean(checkBoxRef.checked);
+            updateSearchParams(page, pageSize, !value);
+        }
     }
 
     // Button handlers
     const onClickHandler = () => {
-        updateSearchParams(page, pageSize);
+        updateSearchParams(page, pageSize, internal);
     }
 
     const onPrevClickHandler = () => {
-        updateSearchParams(page-1, pageSize);
+        updateSearchParams(page-1, pageSize, internal);
     }
     const onNextClickHandler = () => {
-        updateSearchParams(page+1, pageSize);
+        updateSearchParams(page+1, pageSize, internal);
     }
 
     const onImportHandler = () => {
         setRefreshKey(v => v + 1);
     }
 
-    const searchPoint = getSearchPoint(searchText, page, pageSize);
+    const searchPoint = getSearchPoint(searchText, page, pageSize, internal);
 
     return <>
         <div>
@@ -183,16 +198,28 @@ export function GameSearchScreen() {
                     <button type="submit" ref={buttonSearchRef}>Search</button>
                     <select value={String(pageSize)} onChange={(e) => {
 
-                            updateSearchParams(page, e.target.value)
+                            updateSearchParams(page, e.target.value, internal)
                         }}>
                         {["10", "20", "30", "40", "50"]
-                            .map(value => <option value={value}>{value}</option>)}
+                            .map(value => <option key={value} value={value}>{value}</option>)}
                     </select>
+                    
+                </div>
+                <div>
+                    <input type="checkbox" id={INTERNAL_CHECKBOX_ID} checked={internal} onChange={
+                        (e) => {
+                            e.preventDefault();
+                            if(e.target) {
+                                updateSearchParams(page, pageSize, e.target.checked);
+                            }
+                        }
+                    } /> 
+                    <label onClick={internalLabelClicked} htmlFor="my-input">Imported Games Only</label>
                 </div>
             </form>
         </div>
         <InfoTable<GameDataRow> key={`${searchPoint}-${refreshKey}`} auth={false} endpoint={searchPoint} 
-                httpMethod={HttpMethod.POST} infoCardBuilder={infoCardBuilder} 
+                httpMethod={HttpMethod.GET} infoCardBuilder={infoCardBuilder} 
                 pageNavBuilder={buildPageButtons<GameDataRow>(onPrevClickHandler, onNextClickHandler)} />
     </>
 

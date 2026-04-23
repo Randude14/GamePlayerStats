@@ -2,7 +2,7 @@ import { EditType, type EditPopupSettings } from "../context/EditPopupContext";
 import { isValidDate } from "../util/Helpers";
 import type { Game, PlayerStat } from "../util/Models";
 import { fetchWithAuth, HttpMethod } from "../util/serverRequests";
-import './PlayerStatEdit.css'
+import './player-stat-edit.css'
 
 interface PlayerStatEditSettings {
     game: Game;
@@ -25,7 +25,7 @@ const BuildPlayerStatPopup = (game: Game, datePurchased: string, hoursPlayed: nu
     </div>
 }
 
-export async function PlayerStatEdit(settings : PlayerStatEditSettings): Promise<EditPopupSettings> {
+export async function PlayerStatPopupGenerator(settings : PlayerStatEditSettings): Promise<EditPopupSettings> {
 
     let datePurchased: string = null;
     let hoursPlayed: number = null;

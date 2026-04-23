@@ -29,7 +29,9 @@ class GameController {
             checkDate('release', false)
         ], validateErrors(), this.catchAsyncRoute(this.updateGame));
 
-        app.post('/games/external/search/', this.catchAsyncRoute(this.searchExternalGames));
+        app.get('/games/external/search/', this.catchAsyncRoute(this.searchExternalGames));
+
+        app.get('/games/internal/search', this.catchAsyncRoute(this.searchInternalGames));
 
         app.put('/games/external/import/:external_id', this.catchAsyncRoute(this.importExternalGame));
 
@@ -55,6 +57,14 @@ class GameController {
         const { title, release } = req.body;
         const game = await this.gameService.getByTitleRelease(title, release);
         return res.status(200).json(game);
+    }
+
+    async searchInternalGames(req, res) {
+        const gameTitleToSearch = req.query.query?.trim();
+        const page = Number(req.query.page) || 1;
+        const pageSize = Number(req.query.pageSize) || 20;
+        const games = await this.gameService.searchGames(gameTitleToSearch, page, pageSize);
+        return res.status(200).json(games);
     }
 
     async createGame(req, res) {

@@ -44,7 +44,7 @@ class GameService {
             throw new AppError('title and/or release not provided.', 400);
         }
 
-        const gameCheck = await this.knex(Table.GAME_TABLE)
+        let gameCheck = await this.knex(Table.GAME_TABLE)
                                 .where({
                                     title: title,
                                     release: release
@@ -52,6 +52,16 @@ class GameService {
 
         if(gameCheck) {
             throw new AppError('This game already exists.', 409);
+        }
+
+        gameCheck = await this.knex(Table.GAME_TABLE)
+                                .whereNotNull('external_id')
+                                .where({
+                                    external_id
+                                }).first();
+
+        if(gameCheck) {
+            throw new AppError('This game has already been imported.', 400);
         }
 
         const game = await this.knex(Table.GAME_TABLE).insert({
@@ -66,6 +76,42 @@ class GameService {
         });
 
         return game;
+    }
+
+    async searchGames(search, page=1, pageSize=20) {
+        const offset = (page - 1) * pageSize;
+
+        // Grab internal games
+        const internalGames = await this.knex(Table.GAME_TABLE)
+            .select("*")
+            .whereRaw("LOWER(title) LIKE ?", [`%${search.toLowerCase()}%`])
+            .limit(pageSize)
+            .offset(offset);
+        
+        const internalGameCount = await this.knex(`${Table.GAME_TABLE} as g`)
+            .whereRaw("LOWER(title) LIKE ?", [`%${search.toLowerCase()}%`])
+            .count('g.id as total_games');
+        
+        const totalResults = Number(internalGameCount[0].total_games);
+        const totalPages = Math.ceil(totalResults / pageSize) ; 
+
+        // Add isImported flag
+        const results = internalGames.map(game => { return {
+            ...game, 
+            isImported: true,
+            internal_id: game.id
+        } });
+
+        return {
+            query: search,
+            page,
+            pageSize,
+            totalResults,
+            totalPages,
+            hasPreviousPage: page > 1,
+            hasNextPage: page < totalPages,
+            results
+        };
     }
 
     async updateGame(id, data) {

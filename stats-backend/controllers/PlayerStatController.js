@@ -73,7 +73,6 @@ class PlayerStatController {
 
     async captureDashboardInfo(req, res) {
         const player_id = req.params.player_id;
-        console.log(player_id);
         const playerInfo = await this.playerService.getById(player_id);
         const dashboardInfo = await this.playerStatService.getPlayerDashboardInfo(player_id);
         return res.status(200).json({...playerInfo, ...dashboardInfo});
