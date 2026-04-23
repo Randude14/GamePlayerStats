@@ -61,4 +61,4 @@ async function fetchWithAuth(apiCall: string, method: typeof HttpMethod[keyof ty
     }
 }
 
-export { fetchWithNoAuth, fetchWithAuth, HttpMethod}
+export { fetchWithNoAuth, fetchWithAuth, HttpMethod }

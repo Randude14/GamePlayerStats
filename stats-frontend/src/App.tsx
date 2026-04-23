@@ -10,29 +10,44 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { WebPageRoutes } from './util/WebPages';
 import type { JSX } from 'react';
 import { useAuth } from './context/useAuth';
+import { EditPopupProvider } from './context/EditPopupContext';
+
 
 function App() {
     return (
-      <AuthProvider>
-        <ToastProvider>
+      <ContextBuilder>
+        
+        <BrowserRouter>
+          <Navbar></Navbar>
+          <Routes>
+            <Route path="/" element={<Navigate to={WebPageRoutes.ACCOUNT} replace />} />
+            <Route path={WebPageRoutes.ACCOUNT} element={<AccountScreen/>} />
+            <Route path={WebPageRoutes.MY_STATS} element={
+              <ProtectedRoute>
+                <PlayerInfoScreen/>
+              </ProtectedRoute>
+            } />
+            <Route path={WebPageRoutes.ALL_STATS} element={<PlayerStatsAllPage/>} />
+            <Route path={WebPageRoutes.GAMES} element={<GameSearchScreen/>} />
+          </Routes>
+        </BrowserRouter>
+
+      </ContextBuilder>
           
-            <BrowserRouter>
-              <Navbar></Navbar>
-              <Routes>
-                <Route path="/" element={<Navigate to={WebPageRoutes.ACCOUNT} replace />} />
-                <Route path={WebPageRoutes.ACCOUNT} element={<AccountScreen/>} />
-                <Route path={WebPageRoutes.MY_STATS} element={
-                  <ProtectedRoute>
-                    <PlayerInfoScreen/>
-                  </ProtectedRoute>
-                } />
-                <Route path={WebPageRoutes.ALL_STATS} element={<PlayerStatsAllPage/>} />
-                <Route path={WebPageRoutes.GAMES} element={<GameSearchScreen/>} />
-              </Routes>
-            </BrowserRouter>
-          </ToastProvider>
-      </AuthProvider>
+            
     );
+}
+
+function ContextBuilder({ children }: { children: JSX.Element }) {
+  return <>
+    <AuthProvider>
+      <ToastProvider>
+        <EditPopupProvider>
+          {children}
+        </EditPopupProvider>
+      </ToastProvider>
+    </AuthProvider>
+  </>
 }
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
