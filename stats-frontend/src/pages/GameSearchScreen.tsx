@@ -160,7 +160,7 @@ export function GameSearchScreen() {
             query,
             pageSize: String(_pageSize),
             page: String(_page),
-            internal: String(_internalSearch)
+            internalSearch: String(_internalSearch)
         });
     }
 
