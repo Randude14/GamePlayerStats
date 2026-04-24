@@ -100,7 +100,7 @@ export function GameSearchScreen() {
     const page: number = Number(searchParams.get('page') || 1);
     const pageSize: number = Number(searchParams.get('pageSize') || 30);
     const searchText: string = searchParams.get('query') || "";
-    const internalSearch: boolean = searchParams.has('internal') ? searchParams.get('internalSearch') === 'true' : true;
+    const internalSearch: boolean = searchParams.has('internalSearch') ? searchParams.get('internalSearch') === 'true' : true;
 
 
     const onTextChangeHandler = () => {
