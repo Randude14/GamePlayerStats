@@ -10,40 +10,40 @@ class PlayerController {
     }
 
     registerRoutes(app) {
-        app.get('/players', this.catchAsyncRoute(this.getAllPlayers));
+        app.get('/api/players', this.catchAsyncRoute(this.getAllPlayers));
 
-        app.get('/players/me', auth, this.catchAsyncRoute(this.getPlayerInfo));
+        app.get('/api/players/me', auth, this.catchAsyncRoute(this.getPlayerInfo));
 
-        app.post('/auth/login', [
+        app.post('/api/auth/login', [
             check('email', 'Please include your email.').notEmpty(),
             check('password', 'Please include your password.').notEmpty()
         ], validateErrors(), this.catchAsyncRoute(this.playerAuth));
 
-        app.post('/players', [
+        app.post('/api/players', [
             check('name', 'Please include your name.').notEmpty(),
             check('email', 'Please include your email.').notEmpty(),
             check('username', 'Please include a username of at least 6 characters.').isLength({ min: 6}),
             check('password', 'Please include a password of at least 8 characters.').isLength({ min: 8 }),
         ], validateErrors(), this.catchAsyncRoute(this.createPlayer));
 
-        app.delete('/players/me', auth, this.catchAsyncRoute(this.removePlayer));
+        app.delete('/api/players/me', auth, this.catchAsyncRoute(this.removePlayer));
 
-        app.patch('/players/me/email', [
+        app.patch('/api/players/me/email', [
             auth,
             check('email', 'Please include an email.').notEmpty()
         ], this.catchAsyncRoute(this.updatePlayerEmail));
 
-        app.patch('/players/me/username', [
+        app.patch('/api/players/me/username', [
             auth,
             check('username', 'Please include a username.').notEmpty()
         ], this.catchAsyncRoute(this.updatePlayerUsername));
 
-        app.patch('/players/me/name', [
+        app.patch('/api/players/me/name', [
             auth,
             check('name', 'Please include a name.').notEmpty()
         ], this.catchAsyncRoute(this.updatePlayerName));
 
-        app.patch('/players/me/password', [
+        app.patch('/api/players/me/password', [
             auth,
             check('old_password', 'Please include your current password.').notEmpty(),
             check('new_password', 'Please include your new password of at least 8 characters.').isLength({ min: 8 }).notEmpty()

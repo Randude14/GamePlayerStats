@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: player-stats-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: player-stats-frontend
+  template:
+    metadata:
+      labels:
+        app: player-stats-frontend
+    spec:
+      containers:
+        - name: api
+          image: player-stats-frontend:latest
+          imagePullPolicy: Never
+          env:
+            - name: VITE_API_URL
+              value: '/api'
+          ports:
+            - containerPort: 5173

@@ -15,30 +15,30 @@ class PlayerStatController {
     }
 
     registerRoutes(app) {
-        app.get('/player_stats/all', this.catchAsyncRoute(this.getAllStats));
+        app.get('/api/player_stats/all', this.catchAsyncRoute(this.getAllStats));
 
-        app.get('/player_stats/search/:player_id/game/:game_id', this.catchAsyncRoute(this.getPlayerStatFor));
+        app.get('/api/player_stats/search/:player_id/game/:game_id', this.catchAsyncRoute(this.getPlayerStatFor));
 
-        app.get('/player_stats/search/:player_id', this.catchAsyncRoute(this.getAllPlayerStatsFor));
+        app.get('/api/player_stats/search/:player_id', this.catchAsyncRoute(this.getAllPlayerStatsFor));
 
-        app.get('/player_stats/me', auth, this.catchAsyncRoute(this.getAllPlayerStatsForMe));
+        app.get('/api/player_stats/me', auth, this.catchAsyncRoute(this.getAllPlayerStatsForMe));
 
-        app.get('/player_stats/dashboard/:player_id', this.catchAsyncRoute(this.captureDashboardInfo));
+        app.get('/api/player_stats/dashboard/:player_id', this.catchAsyncRoute(this.captureDashboardInfo));
 
-        app.post('/player_stats', [
+        app.post('/api/player_stats', [
             auth,
             check('game_id', 'Please include the id of the game.'),
             checkDate('date_purchased'),
             checkNotNegative('hours_played')
         ], validateErrors(), this.catchAsyncRoute(this.addPlayerStat));
 
-        app.patch('/player_stats/:stat_id', [
+        app.patch('/api/player_stats/:stat_id', [
             auth,
             checkDate('date_purchased', false),
             checkNotNegative('hours_played', false),
         ], validateErrors(), this.catchAsyncRoute(this.updatePlayerStat));
 
-        app.delete('/player_stats/me/:stat_id', [
+        app.delete('/api/player_stats/me/:stat_id', [
             auth
         ], validateErrors(), this.catchAsyncRoute(this.deletePlayerStat));
 

@@ -1,0 +1,46 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: player-stats-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: player_stats
+      MYSQL_USER: statsuser
+      MYSQL_PASSWORD: statspassword
+    ports:
+      - '3307:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  api:
+    build: ./backend
+    container_name: player-stats-api
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      NODE_ENV: development
+      PORT: 4000
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: statsuser
+      DB_PASSWORD: statspassword
+      DB_NAME: player_stats
+      JWT_SECRET: dev-secret
+    ports:
+      - '4000:4000'
+
+  frontend:
+    build: ./frontend
+    container_name: player-stats-frontend
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      VITE_API_URL: http://localhost:4000/api
+    ports:
+      - '5173:5173'
+
+volumes:
+  mysql_data:

@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: player-stats-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: player-stats-api
+  template:
+    metadata:
+      labels:
+        app: player-stats-api
+    spec:
+      containers:
+        - name: api
+          image: player-stats-api:latest
+          imagePullPolicy: Never
+          env:
+            - name: PORT
+              value: '4000'
+            - name: DB_HOST
+              value: db
+            - name: DB_PORT
+              value: '3306'
+            - name: DB_USER
+              value: statsuser
+            - name: DB_PASSWORD
+              value: statspassword
+            - name: DB_NAME
+              value: player_stats
+            - name: CORS_ORIGIN
+              value: 'http://localhost:5173,http://player-stats.local:8080'
+            - name: JWT_SECRET
+              value: dev-secret
+            - name: TWITCH_CLIENT_ID
+              value: h0zgudvlf56ii2q4wpusij14t7dh3j
+            - name: TWITCH_CLIENT_SECRET
+              value: qs9jbcscqxmafrjl03vimllcnjljbb
+          ports:
+            - containerPort: 4000

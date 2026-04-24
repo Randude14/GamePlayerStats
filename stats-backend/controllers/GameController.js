@@ -12,30 +12,30 @@ class GameController {
     }
 
     registerRoutes(app) {
-        app.get('/games', this.catchAsyncRoute(this.getAllGames));
+        app.get('/api/games', this.catchAsyncRoute(this.getAllGames));
 
-        app.get('/games/id/:game_id', this.catchAsyncRoute(this.getGameById));
+        app.get('/api/games/id/:game_id', this.catchAsyncRoute(this.getGameById));
 
-        app.get('/games/search/', this.catchAsyncRoute(this.getGameByTitleRelease));
+        app.get('/api/games/search/', this.catchAsyncRoute(this.getGameByTitleRelease));
 
-        app.put('/games', [
+        app.put('/api/games', [
             check('title', 'Please include the title.').notEmpty(),
             check('developer', 'Please include the deveoper.').notEmpty(),
             check('publisher', 'Please include the publisher.').notEmpty(),
             checkDate('release')
         ], validateErrors(), this.catchAsyncRoute(this.createGame));
 
-        app.patch('/games/:game_id', [
+        app.patch('/api/games/:game_id', [
             checkDate('release', false)
         ], validateErrors(), this.catchAsyncRoute(this.updateGame));
 
-        app.get('/games/external/search/', this.catchAsyncRoute(this.searchExternalGames));
+        app.get('/api/games/external/search/', this.catchAsyncRoute(this.searchExternalGames));
 
-        app.get('/games/internal/search', this.catchAsyncRoute(this.searchInternalGames));
+        app.get('/api/games/internal/search', this.catchAsyncRoute(this.searchInternalGames));
 
-        app.put('/games/external/import/:external_id', this.catchAsyncRoute(this.importExternalGame));
+        app.put('/api/games/external/import/:external_id', this.catchAsyncRoute(this.importExternalGame));
 
-        app.delete('/games/:game_id', this.catchAsyncRoute(this.removeGame));
+        app.delete('/api/games/:game_id', this.catchAsyncRoute(this.removeGame));
     }
 
     catchAsyncRoute(_func) {

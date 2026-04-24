@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: player-stats-ingress
+spec:
+  rules:
+    - host: player-stats.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: player-stats-frontend
+                port:
+                  number: 5173
+
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: player-stats-api
+                port:
+                  number: 4000
