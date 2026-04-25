@@ -45,7 +45,7 @@ const app = express();
         app.use(cors(corsOptions));
 
         // init database
-        const pool = await connecToDB(30, 5000);
+        const pool = await connecToDB(30, 2000);
 
         // migrate after we establish db connection
         await knex.migrate.latest();

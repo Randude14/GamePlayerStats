@@ -11,7 +11,7 @@ function emptyBody(body: string): boolean {
     return !body || body.length === 0;
 }
 
-const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
+const backendUrl = import.meta.env.VITE_BACKEND_URL || '/api';
 
 async function fetchWithNoAuth(apiCall: string, method: typeof HttpMethod[keyof typeof HttpMethod], body: string=''): Promise<Response> {
 
@@ -61,4 +61,4 @@ async function fetchWithAuth(apiCall: string, method: typeof HttpMethod[keyof ty
     }
 }
 
-export { fetchWithNoAuth, fetchWithAuth, HttpMethod }
+export { fetchWithNoAuth, fetchWithAuth, HttpMethod}
