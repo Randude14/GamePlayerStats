@@ -1,5 +1,3 @@
-
-
 export function extractMessage<T>(jsonData: Promise<T>, backupMessage: string) {
     let message = '';
 
@@ -13,6 +11,13 @@ export function extractMessage<T>(jsonData: Promise<T>, backupMessage: string) {
     return message || backupMessage;
 }
 
+export function getFirstObject<T>(items: T[]): T {
+    if(items && items.length) {
+        return items[0];
+    }
+    return null;
+}
+
 export function isValidDate(dateString) {
 
     const regex = /^\d{4}-\d{2}-\d{2}$/;
@@ -24,4 +29,8 @@ export function isValidDate(dateString) {
     return date.getFullYear() === year &&
             date.getMonth() === month - 1 &&
             date.getDate() === day;
+}
+
+export function blankImage(): string {
+    return import.meta.env.VITE_BLANK_IMAGE || './BlankGameCard.png';
 }

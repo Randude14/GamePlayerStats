@@ -18,8 +18,11 @@ class PlayerStatService {
             'ps.hours_played',
             'ps.date_purchased',
             'p.username',
-            'g.title',
-            'g.release'
+            'g.cover_url as game_cover_url',
+            'g.title as game_title',
+            'g.release as game_release',
+            'g.developers as game_developers',
+            'g.publishers as game_publishers'
         )
         return stats;
     }
@@ -33,8 +36,11 @@ class PlayerStatService {
             'ps.game_id',
             'ps.hours_played',
             'ps.date_purchased',
-            'g.title',
-            'g.release'
+            'g.cover_url as game_cover_url',
+            'g.title as game_title',
+            'g.release as game_release',
+            'g.developers as game_developers',
+            'g.publishers as game_publishers'
         )
         .where('ps.player_id', player_id);
 

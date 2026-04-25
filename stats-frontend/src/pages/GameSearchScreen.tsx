@@ -1,15 +1,13 @@
 import { useRef, useState, type ReactElement } from "react"
 import { InfoTable } from "../components/InfoCardPage";
-import { fetchWithAuth, fetchWithNoAuth, HttpMethod } from "../util/serverRequests";
 import './GameSearchScreen.css';
-import type { Game, RowObject, SearchResults } from "../util/Models";
+import type { RowObject, SearchResults } from "../util/Models";
 import { useToast } from "../context/ToastContext";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
-import { PlayerStatPopupGenerator } from "../components/PlayerStatPopupGenerator";
-import { useEditPopup, type EditPopupSettings } from "../context/EditPopupContext";
-
-const blankImage = import.meta.env.VITE_BLANK_IMAGE || './BlankGameCard.png';
+import { blankImage } from "../util/Helpers";
+import { PlayerStatEditButton } from "../components/PlayerStatEditButton";
+import { fetchWithNoAuth, HttpMethod } from "../util/serverRequests";
 
 const INTERNAL_CHECKBOX_ID: string = "internal-checkbox";
 
@@ -34,7 +32,7 @@ const importGame = async (external_id: number): Promise<boolean> => {
     return res.ok;
 }
 
-const GameInfoCard = ({ data, onImport, addGameStatHandler }: { data: GameDataRow, onImport: () => void, addGameStatHandler: () => void }): ReactElement => {
+const GameInfoCard = ({ data, onImport }: { data: GameDataRow, onImport: () => void }): ReactElement => {
     const { token } = useAuth();
     const { toast } = useToast();
     const isLoggedIn = !!token;
@@ -52,7 +50,7 @@ const GameInfoCard = ({ data, onImport, addGameStatHandler }: { data: GameDataRo
         };
 
     return <div className="game-card">
-        <div><img className="game-card-image" src={data.cover_url || blankImage}/></div>
+        <div><img className="game-card-image" src={data.cover_url || blankImage()}/></div>
         <div><label>{data.title}</label></div>
         <div><label>{ getFirstObject(data.developers) }</label></div>
         <div><label>{ getFirstObject(data.publishers) }</label></div>
@@ -60,7 +58,16 @@ const GameInfoCard = ({ data, onImport, addGameStatHandler }: { data: GameDataRo
 
         {!data.isImported && <div><button onClick={importButtonHandler}>Import Game</button></div>}
         {data.isImported && <div><button disabled>Game Imported</button></div>}
-        {data.isImported && <div><button disabled={!isLoggedIn} onClick={addGameStatHandler}>Add To Profile</button></div>}
+        {data.isImported && <PlayerStatEditButton 
+                game={{
+                    title: data.title,
+                    publisher: data.publishers.length ? data.publishers[0] : 'N/A',
+                    developer: data.developers.length ? data.developers[0] : 'N/A',
+                    release: data.release_date,
+                    id: data.internal_id,
+                    created_at: null
+                }
+        } disabled={!isLoggedIn} buttonLabel="Add Or Update" />}
     </div>
 }
 
@@ -93,10 +100,6 @@ export function GameSearchScreen() {
     const [refreshKey, setRefreshKey] = useState<number>(1);
     const [searchParams, setSearchParams] = useSearchParams();
 
-    const { user } = useAuth();
-    const { showPopup } = useEditPopup();
-    const { toast } = useToast();
-
     const page: number = Number(searchParams.get('page') || 1);
     const pageSize: number = Number(searchParams.get('pageSize') || 30);
     const searchText: string = searchParams.get('query') || "";
@@ -109,44 +112,9 @@ export function GameSearchScreen() {
         }
     }
 
-    const playerStatSaveHandler = async (statId: number, gameId: number, date_purchased: string, hours_played: number) => {
-        const statEndpoint = statId >= 1 ? `player_stats/${statId}` : 'player_stats';
-        const body = JSON.stringify({ game_id: gameId, date_purchased, hours_played });
-        const res = await fetchWithAuth(statEndpoint, statId >= 1 ? HttpMethod.PATCH : HttpMethod.POST, body);
-
-        if(res.ok) {
-            const toastMessage = statId >= 1 ?
-                'Game stat added to profile.' :
-                'Game stat updated.';
-
-            toast.success(toastMessage);
-        }
-        else {
-            toast.error('Failed to add to profile.');
-        }
-    }
-
     const infoCardBuilder =  (data: GameDataRow) => {
 
-        const addGameStatHandler = async () => {
-            const game: Game = {
-                title: data.title,
-                publisher: data.publishers.length ? data.publishers[0] : 'N/A',
-                developer: data.developers.length ? data.developers[0] : 'N/A',
-                release: data.release_date,
-                id: data.internal_id,
-                created_at: null
-            }
-
-            const popupSettings: EditPopupSettings = await PlayerStatPopupGenerator({
-                game,
-                userId: user.id,
-                submitCallback: playerStatSaveHandler
-            });
-
-            showPopup(popupSettings);
-        }
-        return <GameInfoCard data={data} onImport={onImportHandler} addGameStatHandler={addGameStatHandler}/>
+        return <GameInfoCard data={data} onImport={onImportHandler} />
     }
 
     const updateSearchParams = (_page: number | string, _pageSize: number | string, _internalSearch: boolean | string) => {
