@@ -2,6 +2,7 @@ import { useState, type ReactElement } from "react"
 import { InfoTable } from "../components/InfoCardPage";
 import { blankImage, getFirstObject } from "../util/Helpers";
 import { PlayerStatEditButton } from "../components/PlayerStatEditButton";
+import { useAuth } from "../context/useAuth";
 
 type PlayerStatRow = {
     title: string,
@@ -20,18 +21,18 @@ const infoCardBuilder = (data: PlayerStatRow, updateGameCallback: () => void): R
     const datePurchased: string = new Date(data.date_purchased).toLocaleDateString();
     const gameRelease: string = new Date(data.game_release).toLocaleDateString();
 
-    return <div>
-        <div><img className="game-card-image" src={data.game_cover_url || blankImage()}/></div>
+    return <div className="info-card-fields">
+        <div><img className="info-card-image" src={data.game_cover_url || blankImage()}/></div>
         <div><label>{data.title}</label></div>
         <div><label>{`Hours Played: ${data.hours_played}`}</label></div>
         <div><label>{ `Date Purchased: ${datePurchased}` }</label></div>
-        <div><label>{ `Release Date: ${gameRelease}` }</label></div>
+        <div><label>{ `Game Release: ${gameRelease}` }</label></div>
         <PlayerStatEditButton 
         game={{
             id: data.game_id,
             title: data.title,
             release: data.game_release || '1999-10-28',
-            developer: getFirstObject(data.game_publishers) || '',
+            developer: getFirstObject(data.game_developers) || '',
             publisher: getFirstObject(data.game_publishers) || '',
             created_at: null
         }} 
@@ -41,6 +42,7 @@ const infoCardBuilder = (data: PlayerStatRow, updateGameCallback: () => void): R
 
 export function PlayerInfoScreen() {
 
+    const { user } = useAuth();
     const [refreshKey, setRefreshKey] = useState<number>(1);
 
     const updateGameCallback = () => {
@@ -51,5 +53,8 @@ export function PlayerInfoScreen() {
         return infoCardBuilder(data, updateGameCallback);
     }
 
-    return <InfoTable<PlayerStatRow> key={`PlayerStatMe-${refreshKey}`} auth={true} endpoint="player_stats/me" infoCardBuilder={cardGenerator} />
+    return <div>
+        {user && <h1><span className="highlight">{user.username}</span> Stats</h1>}
+        <InfoTable<PlayerStatRow> key={`PlayerStatMe-${refreshKey}`} auth={true} endpoint="player_stats/me" infoCardBuilder={cardGenerator} />
+    </div>
 }

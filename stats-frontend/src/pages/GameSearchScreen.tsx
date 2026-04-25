@@ -49,8 +49,8 @@ const GameInfoCard = ({ data, onImport }: { data: GameDataRow, onImport: () => v
             }
         };
 
-    return <div className="game-card">
-        <div><img className="game-card-image" src={data.cover_url || blankImage()}/></div>
+    return <div className="info-card-fields">
+        <div><img className="info-card-image" src={data.cover_url || blankImage()}/></div>
         <div><label>{data.title}</label></div>
         <div><label>{ getFirstObject(data.developers) }</label></div>
         <div><label>{ getFirstObject(data.publishers) }</label></div>
