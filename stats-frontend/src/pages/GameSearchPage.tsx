@@ -1,6 +1,6 @@
 import { useRef, useState, type ReactElement } from "react"
 import { InfoTable } from "../components/InfoCardPage";
-import './GameSearchScreen.css';
+import './GameSearchPage.css';
 import type { RowObject, SearchResults } from "../util/Models";
 import { useToast } from "../context/ToastContext";
 import { useSearchParams } from "react-router-dom";
@@ -93,7 +93,7 @@ const getSearchPoint = (text: string, page: number, pageSize: number, internal: 
     return `games/external/search?query=${text}&pageSize=${pageSize}&page=${page}`;
 }
 
-export function GameSearchScreen() {
+export function GameSearchPage() {
     const gameSearchText = useRef<HTMLInputElement | null>(null);
     const buttonSearchRef = useRef<HTMLButtonElement | null>(null);
 

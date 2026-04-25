@@ -40,7 +40,7 @@ const infoCardBuilder = (data: PlayerStatRow, updateGameCallback: () => void): R
     </div>
 }
 
-export function PlayerInfoScreen() {
+export function PlayerInfoPage() {
 
     const { user } = useAuth();
     const [refreshKey, setRefreshKey] = useState<number>(1);

@@ -3,12 +3,12 @@ import { fetchWithAuth, fetchWithNoAuth, HttpMethod } from "../util/serverReques
 import { useAuth } from "../context/useAuth";
 import { AccountLoginPage } from "../components/AccountLoginPage";
 import { AccountCreatePage } from "../components/AccountCreatePage";
-import './AccountScreen.css'
+import './AccountPage.css'
 import { useToast } from "../context/ToastContext";
 import { extractMessage } from "../util/Helpers";
 import type { PlayerDashboard } from "../util/Models";
 
-export function AccountScreen() {
+export function AccountPage() {
     const { user, token, logout } = useAuth();
     const { toast } = useToast();
     const [createAccount, setCreateAccount] = useState(false);
