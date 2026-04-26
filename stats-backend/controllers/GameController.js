@@ -29,7 +29,7 @@ class GameController {
             checkDate('release', false)
         ], validateErrors(), this.catchAsyncRoute(this.updateGame));
 
-        app.get('/api/games/external/search/', this.catchAsyncRoute(this.searchExternalGames));
+        app.get('/api/games/external/search', this.catchAsyncRoute(this.searchExternalGames));
 
         app.get('/api/games/internal/search', this.catchAsyncRoute(this.searchInternalGames));
 
@@ -60,7 +60,7 @@ class GameController {
     }
 
     async searchInternalGames(req, res) {
-        const gameTitleToSearch = req.query.query?.trim();
+        const gameTitleToSearch = req.query.query?.trim() || '';
         const page = Number(req.query.page) || 1;
         const pageSize = Number(req.query.pageSize) || 20;
         const games = await this.gameService.searchGames(gameTitleToSearch, page, pageSize);
@@ -86,7 +86,7 @@ class GameController {
     }
 
     async searchExternalGames(req, res) {
-        const gameTitleToSearch = req.query.query?.trim();
+        const gameTitleToSearch = req.query.query?.trim() || '';
         const page = Number(req.query.page) || 1;
         const pageSize = Number(req.query.pageSize) || 20;
         const games = await this.externalGameAPIService.searchExternalGames(gameTitleToSearch, page, pageSize);

@@ -5,11 +5,11 @@ import { PlayerStatEditButton } from "../components/PlayerStatEditButton";
 import { useAuth } from "../context/useAuth";
 
 type PlayerStatRow = {
-    title: string,
     player_id: number,
     game_id: number,
     hours_played: number,
     date_purchased: Date,
+    game_title: string,
     game_publishers: string[],
     game_developers: string[],
     game_cover_url: string,
@@ -23,14 +23,14 @@ const infoCardBuilder = (data: PlayerStatRow, updateGameCallback: () => void): R
 
     return <div className="info-card-fields">
         <div><img className="info-card-image" src={data.game_cover_url || blankImage()}/></div>
-        <div><label>{data.title}</label></div>
+        <div><label>{data.game_title}</label></div>
         <div><label>{`Hours Played: ${data.hours_played}`}</label></div>
         <div><label>{ `Date Purchased: ${datePurchased}` }</label></div>
         <div><label>{ `Game Release: ${gameRelease}` }</label></div>
         <PlayerStatEditButton 
         game={{
             id: data.game_id,
-            title: data.title,
+            title: data.game_title,
             release: data.game_release || '1999-10-28',
             developer: getFirstObject(data.game_developers) || '',
             publisher: getFirstObject(data.game_publishers) || '',
@@ -40,7 +40,7 @@ const infoCardBuilder = (data: PlayerStatRow, updateGameCallback: () => void): R
     </div>
 }
 
-export function PlayerInfoPage() {
+export function PlayerStatsMePage() {
 
     const { user } = useAuth();
     const [refreshKey, setRefreshKey] = useState<number>(1);
@@ -55,6 +55,6 @@ export function PlayerInfoPage() {
 
     return <div>
         {user && <h1><span className="highlight">{user.username}</span> Stats</h1>}
-        <InfoTable<PlayerStatRow> key={`PlayerStatMe-${refreshKey}`} auth={true} endpoint="player_stats/me" infoCardBuilder={cardGenerator} />
+        <InfoTable<PlayerStatRow> key={`PlayerStatMe-${refreshKey}`} auth={true} endpoint="player_stats/me/search" infoCardBuilder={cardGenerator} />
     </div>
 }

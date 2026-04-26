@@ -3,7 +3,6 @@ import Navbar from './components/Navbar'
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { PlayerStatsAllPage } from './pages/PlayerStatsAllPage';
-import { PlayerInfoPage } from './pages/PlayerInfoPage';
 import { GameSearchPage } from './pages/GameSearchPage';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { WebPageRoutes } from './util/WebPages';
@@ -11,6 +10,7 @@ import type { JSX } from 'react';
 import { useAuth } from './context/useAuth';
 import { EditPopupProvider } from './context/EditPopupContext';
 import { AccountPage } from './pages/AccountPage';
+import { PlayerStatsMePage } from './pages/PlayerStatsMePage';
 
 
 function App() {
@@ -18,13 +18,13 @@ function App() {
       <ContextBuilder>
         
         <BrowserRouter>
-          <Navbar></Navbar>
+          <Navbar/>
           <Routes>
             <Route path="/" element={<Navigate to={WebPageRoutes.ACCOUNT} replace />} />
             <Route path={WebPageRoutes.ACCOUNT} element={<AccountPage/>} />
             <Route path={WebPageRoutes.MY_STATS} element={
               <ProtectedRoute>
-                <PlayerInfoPage/>
+                <PlayerStatsMePage/>
               </ProtectedRoute>
             } />
             <Route path={WebPageRoutes.ALL_STATS} element={<PlayerStatsAllPage/>} />

@@ -90,9 +90,9 @@ class GameService {
         
         const internalGameCount = await this.knex(`${Table.GAME_TABLE} as g`)
             .whereRaw("LOWER(title) LIKE ?", [`%${search.toLowerCase()}%`])
-            .count('g.id as total_games');
+            .count('g.id as total_games').first();
         
-        const totalResults = Number(internalGameCount[0].total_games);
+        const totalResults = Number(internalGameCount.total_games);
         const totalPages = Math.ceil(totalResults / pageSize) ; 
 
         // Add isImported flag

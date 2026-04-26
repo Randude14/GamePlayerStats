@@ -1,15 +1,15 @@
-import { useRef, useState, type ReactElement } from "react"
+import { useState, type ReactElement } from "react"
 import { InfoTable } from "../components/InfoCardPage";
 import './GameSearchPage.css';
-import type { RowObject, SearchResults } from "../util/Models";
 import { useToast } from "../context/ToastContext";
-import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
-import { blankImage } from "../util/Helpers";
+import { blankImage, getFirstObject } from "../util/Helpers";
 import { PlayerStatEditButton } from "../components/PlayerStatEditButton";
 import { fetchWithNoAuth, HttpMethod } from "../util/serverRequests";
+import { useSearchParams } from "react-router-dom";
 
 const INTERNAL_CHECKBOX_ID: string = "internal-checkbox";
+const INTERNAL_PARAM: string = "internalSearch"
 
 type GameDataRow = {
     title: string,
@@ -22,11 +22,30 @@ type GameDataRow = {
     internal_id: number
 }
 
-const getFirstObject = (items: string[]): string => {
-    return (items && items.length > 0) 
-            ? items[0] : 'N/A';
+// -------- Main Export ------------
+export function GameSearchPage() {
+
+    const [refreshKey, setRefreshKey] = useState<number>(1);
+    const [ searchParams ] = useSearchParams();
+    const internalChecked: boolean = searchParams.has(INTERNAL_PARAM) ? Boolean(searchParams.get(INTERNAL_PARAM)) : true
+    const endpoint: string = internalChecked ? 'games/internal/search' : 'games/external/search'
+
+    const infoCardBuilder =  (data: GameDataRow) => {
+
+        return <GameInfoCard data={data} onImport={onImportHandler} />
+    }
+
+    const onImportHandler = () => setRefreshKey(v => v + 1);
+        
+    return <>
+        <InfoTable<GameDataRow> key={`$GameSearchPage-${refreshKey}`} auth={false} endpoint={endpoint} 
+                httpMethod={HttpMethod.GET} infoCardBuilder={infoCardBuilder} 
+                addPageNavigationElements={addPageNavigationElements} addSearchParams={addSearchParams} />
+    </>
+
 }
 
+// ------------ Helper Functions ----------------
 const importGame = async (external_id: number): Promise<boolean> => {
     const res = await fetchWithNoAuth(`games/external/import/${external_id}`, HttpMethod.PUT);
     return res.ok;
@@ -71,128 +90,38 @@ const GameInfoCard = ({ data, onImport }: { data: GameDataRow, onImport: () => v
     </div>
 }
 
-type ClickHandler = () => void;
-function buildPageButtons<T extends RowObject>(onPrevClickHandler: ClickHandler, onNextClickHandler: ClickHandler) {
+const addSearchParams = (searchParams: URLSearchParams) => {
 
-    return (searchResults: SearchResults<T>) => {
-            return <div>
-                <button className="info-card-navigation" disabled={!searchResults.hasPreviousPage} onClick={onPrevClickHandler}>Previous</button>
-                <label className="info-card-navigation">{`Page ${searchResults.page} / ${searchResults.totalPages}`}</label>
-                <button className="info-card-navigation" disabled={!searchResults.hasNextPage} onClick={onNextClickHandler}>Next</button>
-            </div>
-    }
-}
-
-const getSearchPoint = (text: string, page: number, pageSize: number, internal: boolean) => {
-    if(!text) {
-        return null;
-    }
-    if(internal) {
-        return `games/internal/search?query=${text}&pageSize=${pageSize}&page=${page}`;
-    }
-    return `games/external/search?query=${text}&pageSize=${pageSize}&page=${page}`;
-}
-
-export function GameSearchPage() {
-    const gameSearchText = useRef<HTMLInputElement | null>(null);
-    const buttonSearchRef = useRef<HTMLButtonElement | null>(null);
-
-    const [refreshKey, setRefreshKey] = useState<number>(1);
-    const [searchParams, setSearchParams] = useSearchParams();
-
-    const page: number = Number(searchParams.get('page') || 1);
-    const pageSize: number = Number(searchParams.get('pageSize') || 30);
-    const searchText: string = searchParams.get('query') || "";
-    const internalSearch: boolean = searchParams.has('internalSearch') ? searchParams.get('internalSearch') === 'true' : true;
-
-
-    const onTextChangeHandler = () => {
-        if(buttonSearchRef.current && gameSearchText.current) {
-            buttonSearchRef.current.disabled = gameSearchText.current.value.length === 0;
+    const checkBoxRef: HTMLInputElement = document.getElementById(INTERNAL_CHECKBOX_ID) as HTMLInputElement;
+    if(checkBoxRef) {
+        return {
+            ...searchParams,
+            internalSearch: String(checkBoxRef.checked)
         }
     }
+    return searchParams;
+}
 
-    const infoCardBuilder =  (data: GameDataRow) => {
-
-        return <GameInfoCard data={data} onImport={onImportHandler} />
-    }
-
-    const updateSearchParams = (_page: number | string, _pageSize: number | string, _internalSearch: boolean | string) => {
-        const query = gameSearchText.current?.value || '';
-
-        if(Boolean(_internalSearch) !== internalSearch) {
-            _page = 1;
-        }
-
-        setSearchParams({
-            query,
-            pageSize: String(_pageSize),
-            page: String(_page),
-            internalSearch: String(_internalSearch)
-        });
-    }
+const addPageNavigationElements = (searchParams: URLSearchParams, refreshPage: () => void) => {
+    const internalChecked: boolean = searchParams.has(INTERNAL_PARAM) ? Boolean(searchParams.get(INTERNAL_PARAM) === "true") : true
 
     const internalLabelClicked = () => {
         const checkBoxRef: HTMLInputElement = document.getElementById(INTERNAL_CHECKBOX_ID) as HTMLInputElement;
         if(checkBoxRef) {
-            const value: boolean = Boolean(checkBoxRef.checked);
-            updateSearchParams(page, pageSize, !value);
+            checkBoxRef.checked = !checkBoxRef.checked;
+            refreshPage();
         }
     }
 
-    // Button handlers
-    const onClickHandler = () => {
-        updateSearchParams(page, pageSize, internalSearch);
-    }
-
-    const onPrevClickHandler = () => {
-        updateSearchParams(page-1, pageSize, internalSearch);
-    }
-    const onNextClickHandler = () => {
-        updateSearchParams(page+1, pageSize, internalSearch);
-    }
-
-    const onImportHandler = () => {
-        setRefreshKey(v => v + 1);
-    }
-
-    const searchPoint = getSearchPoint(searchText, page, pageSize, internalSearch);
-
-    return <>
-        <div>
-            <form onSubmit={(e) => {
+    return <div className="game-search">
+        <input type="checkbox" id={INTERNAL_CHECKBOX_ID} checked={internalChecked} onChange={
+            (e) => {
                 e.preventDefault();
-                onClickHandler();
-            }}>
-                <div className="game-search">
-                    <input type="search" ref={gameSearchText} onChange={onTextChangeHandler} 
-                            placeholder="Enter game name here" defaultValue={searchText} /> 
-                    <button type="submit" ref={buttonSearchRef}>Search</button>
-                    <select value={String(pageSize)} onChange={(e) => {
-
-                            updateSearchParams(page, e.target.value, internalSearch)
-                        }}>
-                        {["10", "20", "30", "40", "50"]
-                            .map(value => <option key={value} value={value}>{value}</option>)}
-                    </select>
-                    
-                </div>
-                <div className="game-search">
-                    <input type="checkbox" id={INTERNAL_CHECKBOX_ID} checked={internalSearch} onChange={
-                        (e) => {
-                            e.preventDefault();
-                            if(e.target) {
-                                updateSearchParams(page, pageSize, e.target.checked);
-                            }
-                        }
-                    } /> 
-                    <label onClick={internalLabelClicked} htmlFor="my-input">Imported Games Only</label>
-                </div>
-            </form>
-        </div>
-        <InfoTable<GameDataRow> key={`${searchPoint}-${refreshKey}`} auth={false} endpoint={searchPoint} 
-                httpMethod={HttpMethod.GET} infoCardBuilder={infoCardBuilder} 
-                pageNavBuilder={buildPageButtons<GameDataRow>(onPrevClickHandler, onNextClickHandler)} />
-    </>
-
+                if(e.target) {
+                    refreshPage();
+                }
+            }
+        } /> 
+        <label onClick={internalLabelClicked} htmlFor="my-input">Imported Games Only</label>
+    </div>
 }

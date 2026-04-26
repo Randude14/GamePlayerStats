@@ -13,18 +13,30 @@ function emptyBody(body: string): boolean {
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || '/api';
 
+function buildUrl(apiCall: string): URL {
+    return new URL(`${backendUrl}/${apiCall}`);
+}
+
 async function fetchWithNoAuth(apiCall: string, method: typeof HttpMethod[keyof typeof HttpMethod], body: string=''): Promise<Response> {
+    return fetchURLWithNoAuth(`${backendUrl}/${apiCall}`, method, body);
+}
+
+async function fetchWithAuth(apiCall: string, method: typeof HttpMethod[keyof typeof HttpMethod], body: string=''): Promise<Response> {
+    return fetchURLWithAuth(`${backendUrl}/${apiCall}`, method, body);
+}
+
+async function fetchURLWithNoAuth(url: string, method: typeof HttpMethod[keyof typeof HttpMethod], body: string=''): Promise<Response> {
 
     // GET cannot have bodies even when empty
     if(method === HttpMethod.GET || emptyBody(body)) {
-        const res = await fetch(`${backendUrl}/${apiCall}`, {
+        const res = await fetch(url, {
             method: method
         });
 
         return res;
     }
     else {
-        const res = await fetch(`${backendUrl}/${apiCall}`, {
+        const res = await fetch(url, {
             method: method,
             headers: { 'Content-Type': 'application/json'},
             body: body
@@ -34,7 +46,7 @@ async function fetchWithNoAuth(apiCall: string, method: typeof HttpMethod[keyof 
     }
 }
 
-async function fetchWithAuth(apiCall: string, method: typeof HttpMethod[keyof typeof HttpMethod], body: string=''): Promise<Response> {
+async function fetchURLWithAuth(url: string, method: typeof HttpMethod[keyof typeof HttpMethod], body: string=''): Promise<Response> {
     const token: string = localStorage.getItem('token') || '';
 
     if(token === '') {
@@ -43,7 +55,7 @@ async function fetchWithAuth(apiCall: string, method: typeof HttpMethod[keyof ty
 
     // GET cannot have bodies even when empty
     if(method === HttpMethod.GET || emptyBody(body)) {
-        const res = await fetch(`${backendUrl}/${apiCall}`, {
+        const res = await fetch(url, {
             method: method,
             headers: {'x-auth-token': token},
         });
@@ -51,7 +63,7 @@ async function fetchWithAuth(apiCall: string, method: typeof HttpMethod[keyof ty
         return res;
     }
     else {
-        const res = await fetch(`${backendUrl}/${apiCall}`, {
+        const res = await fetch(url, {
             method: method,
             headers: { 'Content-Type': 'application/json', 'x-auth-token': token},
             body: body
@@ -61,4 +73,4 @@ async function fetchWithAuth(apiCall: string, method: typeof HttpMethod[keyof ty
     }
 }
 
-export { fetchWithNoAuth, fetchWithAuth, HttpMethod}
+export { fetchURLWithNoAuth, fetchURLWithAuth, fetchWithNoAuth, fetchWithAuth, buildUrl, HttpMethod };

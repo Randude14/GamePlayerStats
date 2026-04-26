@@ -52,11 +52,11 @@ export function PlayerStatsAllPage() {
     }
 
     const cardGenerator = (data: PlayerStatRow) => {
-        return infoCardBuilder(data, user.username, updateGameCallback);
+        return infoCardBuilder(data, user?.username, updateGameCallback);
     }
     
     return <div>
         <h1>All Player Stats</h1>
-        <InfoTable<PlayerStatRow> key={`PlayerStatAll-${refreshKey}`} auth={false} endpoint="player_stats/all" infoCardBuilder={cardGenerator}/>
+        <InfoTable<PlayerStatRow> key={`PlayerStatAll-${refreshKey}`} auth={false} endpoint="player_stats/all/search" infoCardBuilder={cardGenerator}/>
     </div>
 }

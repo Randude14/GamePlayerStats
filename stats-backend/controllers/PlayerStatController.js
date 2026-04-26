@@ -15,13 +15,16 @@ class PlayerStatController {
     }
 
     registerRoutes(app) {
-        app.get('/api/player_stats/all', this.catchAsyncRoute(this.getAllStats));
+
+        app.get('/api/player_stats/all', this.catchAsyncRoute(this.getAllStats))
+
+        app.get('/api/player_stats/all/search', this.catchAsyncRoute(this.searchAllStatsFor));
 
         app.get('/api/player_stats/search/:player_id/game/:game_id', this.catchAsyncRoute(this.getPlayerStatFor));
 
         app.get('/api/player_stats/search/:player_id', this.catchAsyncRoute(this.getAllPlayerStatsFor));
 
-        app.get('/api/player_stats/me', auth, this.catchAsyncRoute(this.getAllPlayerStatsForMe));
+        app.get('/api/player_stats/me/search', auth, this.catchAsyncRoute(this.searchAllPlayerStatsFor));
 
         app.get('/api/player_stats/dashboard/:player_id', this.catchAsyncRoute(this.captureDashboardInfo));
 
@@ -49,8 +52,17 @@ class PlayerStatController {
     }
 
     async getAllStats(req, res) {
-        const rows = await this.playerStatService.getAllStats();
-        return res.status(200).json({results: rows});
+        const allStats = await this.playerStatService.getAllStats();
+        return res.status(200).json({results: allStats});
+    }
+
+    async searchAllStatsFor(req, res) {
+        const queryToSearch = req.query.query?.trim();
+        const page = Number(req.query.page) || 1;
+        const pageSize = Number(req.query.pageSize) || 20;
+        const searchType = !!req.query.searchType ? Boolean(req.query.searchType) : true;
+        const playerStatResults = await this.playerStatService.searchAllStatsFor(queryToSearch, page, pageSize, searchType);
+        return res.status(200).json(playerStatResults);
     }
 
     async getPlayerStatFor(req, res) {
@@ -65,10 +77,13 @@ class PlayerStatController {
         return res.status(200).json({results: playerStatRows});
     }
 
-    async getAllPlayerStatsForMe(req, res) {
+    async searchAllPlayerStatsFor(req, res) {
         const player_id = req.player.id;
-        const playerStatRows = await this.playerStatService.getAllStatsFor(player_id);
-        return res.status(200).json({results: playerStatRows});
+        const gameTitleToSearch = req.query.query?.trim();
+        const page = Number(req.query.page) || 1;
+        const pageSize = Number(req.query.pageSize) || 20;
+        const playerStatResults = await this.playerStatService.searchAllPlayerStatsFor(player_id, gameTitleToSearch, page, pageSize);
+        return res.status(200).json(playerStatResults);
     }
 
     async captureDashboardInfo(req, res) {

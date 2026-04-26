@@ -9,28 +9,87 @@ class PlayerStatService {
     }
 
     async getAllStats() {
-        const stats = await this.knex(`${Table.PLAYER_STAT_TABLE} as ps`)
-        .join(`${Table.GAME_TABLE} as g`, 'ps.game_id', 'g.id')
-        .join(`${Table.PLAYER_TABLE} as p`, 'ps.player_id', 'p.id')
-        .select(
-            'ps.player_id',
-            'ps.game_id',
-            'ps.hours_played',
-            'ps.date_purchased',
-            'p.username',
-            'g.cover_url as game_cover_url',
-            'g.title as game_title',
-            'g.release as game_release',
-            'g.developers as game_developers',
-            'g.publishers as game_publishers'
-        )
-        return stats;
+        const rows = await this.knex(Table.PLAYER_STAT_TABLE).select('*');
+        return rows;
     }
 
-    async getAllStatsFor(player_id) {
-        // use join table to extract game info as well as the players stats for those games
-        const stats = await this.knex(`${Table.PLAYER_STAT_TABLE} as ps`)
-        .join(`${Table.GAME_TABLE} as g`, 'ps.game_id', 'g.id')
+    async searchAllStatsFor(search, page, pageSize, searchForPlayer) {
+        const offset = (page - 1) * pageSize;
+        const trimmedQuery = search?.trim();
+
+        // optional queries for searching by username or game title
+        const applyFilters = (query) => {
+            if(trimmedQuery && trimmedQuery.length) {
+                if(searchForPlayer) {
+                    query.where('p.username', 'like', `%${trimmedQuery}%`);
+                }
+                else {
+                    query.where('g.title', 'like', `%${trimmedQuery}%`);
+                }
+            }
+            return query;
+        };
+
+        const statsResults = await applyFilters(
+            this.knex(`${Table.PLAYER_STAT_TABLE} as ps`)
+                .join(`${Table.GAME_TABLE} as g`, 'ps.game_id', 'g.id')
+                .join(`${Table.PLAYER_TABLE} as p`, 'ps.player_id', 'p.id')
+        )
+        .select(
+            'ps.player_id',
+            'ps.game_id',
+            'ps.hours_played',
+            'ps.date_purchased',
+            'p.username as username',
+            'g.cover_url as game_cover_url',
+            'g.title as game_title',
+            'g.release as game_release',
+            'g.developers as game_developers',
+            'g.publishers as game_publishers'
+        )
+        .limit(pageSize)
+        .offset(offset);
+
+        const totalRows = await applyFilters(
+            this.knex(`${Table.PLAYER_STAT_TABLE} as ps`)
+                .join(`${Table.GAME_TABLE} as g`, 'ps.game_id', 'g.id')
+                .join(`${Table.PLAYER_TABLE} as p`, 'ps.player_id', 'p.id')
+        )
+        .count('ps.id as total').first();
+
+        const totalResults = Number(totalRows.total);
+        const totalPages = Math.ceil(totalResults / pageSize);
+
+        return {
+            query: trimmedQuery,
+            page,
+            pageSize,
+            totalResults,
+            totalPages,
+            hasPreviousPage: page > 1,
+            hasNextPage: page < totalPages,
+            results: statsResults
+        }
+    }
+
+    async searchAllPlayerStatsFor(player_id, gameQuery, page, pageSize) {
+        const offset = (page - 1) * pageSize;
+        const trimmedQuery = gameQuery?.trim();
+
+        const applyFilters = (query) => {
+            query.where('ps.player_id', player_id);
+
+            // Add optional query if not blank
+            if (trimmedQuery) {
+                query.andWhere('g.title', 'like', `%${trimmedQuery}%`);
+            }
+            return query;
+        };
+
+        const statsResults = await applyFilters(
+            this.knex(`${Table.PLAYER_STAT_TABLE} as ps`)
+                .join(`${Table.GAME_TABLE} as g`, 'ps.game_id', 'g.id')
+        )
         .select(
             'ps.player_id',
             'ps.game_id',
@@ -42,9 +101,28 @@ class PlayerStatService {
             'g.developers as game_developers',
             'g.publishers as game_publishers'
         )
-        .where('ps.player_id', player_id);
+        .limit(pageSize)
+        .offset(offset);
 
-        return stats;
+        const totalRows = await applyFilters(
+            this.knex(`${Table.PLAYER_STAT_TABLE} as ps`)
+                .join(`${Table.GAME_TABLE} as g`, 'ps.game_id', 'g.id')
+        )
+        .count('ps.id as total').first();
+
+        const totalResults = Number(totalRows.total);
+        const totalPages = Math.ceil(totalResults / pageSize);
+
+        return {
+            query: trimmedQuery,
+            page,
+            pageSize,
+            totalResults,
+            totalPages,
+            hasPreviousPage: page > 1,
+            hasNextPage: page < totalPages,
+            results: statsResults
+        }
     }
 
     async getById(id) {
@@ -74,10 +152,10 @@ class PlayerStatService {
     async getPlayerDashboardInfo(player_id) {
         
         const dashboardInfo = await this.knex(`${Table.PLAYER_STAT_TABLE} as ps`)
-        .where('ps.player_id', player_id)
-        .sum('ps.hours_played as total_hours')
-        .count('ps.game_id as total_games')
-        .first();
+            .where('ps.player_id', player_id)
+            .sum('ps.hours_played as total_hours')
+            .count('ps.game_id as total_games')
+            .first();
 
         const totalHours = dashboardInfo["total_hours"];
         const totalGames = dashboardInfo["total_games"];
