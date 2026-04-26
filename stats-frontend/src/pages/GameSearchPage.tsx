@@ -1,5 +1,5 @@
 import { useState, type ReactElement } from "react"
-import { InfoTable } from "../components/InfoCardPage";
+import { InfoTable, type SearchParams } from "../components/InfoCardPage";
 import './GameSearchPage.css';
 import { useToast } from "../context/ToastContext";
 import { useAuth } from "../context/useAuth";
@@ -90,16 +90,14 @@ const GameInfoCard = ({ data, onImport }: { data: GameDataRow, onImport: () => v
     </div>
 }
 
-const addSearchParams = (searchParams: URLSearchParams) => {
-
+const addSearchParams = () => {
     const checkBoxRef: HTMLInputElement = document.getElementById(INTERNAL_CHECKBOX_ID) as HTMLInputElement;
     if(checkBoxRef) {
         return {
-            ...searchParams,
             internalSearch: String(checkBoxRef.checked)
         }
     }
-    return searchParams;
+    return {};
 }
 
 const addPageNavigationElements = (searchParams: URLSearchParams, refreshPage: () => void) => {

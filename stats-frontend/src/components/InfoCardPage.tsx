@@ -6,12 +6,18 @@ import type { RowObject, SearchResults } from "../util/Models";
 import { extractMessage } from "../util/Helpers";
 import { useSearchParams } from "react-router-dom";
 
+export type SearchParams = {
+    query: string,
+    pageSize: string,
+    page: string
+}
+
 interface ColumnInfoSettings {
     auth: boolean, // whether to use user token
     endpoint: string, // API endpoint to get rows from
     httpMethod?: string, // HTTP method to use, GET if not passed
     infoCardBuilder: (data: RowObject) => ReactElement, // Function passed to build the info cards
-    addSearchParams?: (params: URLSearchParams) => URLSearchParams;
+    addSearchParams?: () => any;
     addPageNavigationElements?: (params: URLSearchParams, refreshPage: () => void) => ReactElement;
 }
 
@@ -108,20 +114,34 @@ export function InfoTable<T extends RowObject>({auth, endpoint, httpMethod, info
     const updateSearchParams = (page: number | string, pageSize: number | string) => {
         const query: string = gameSearchText.current?.value || '';
 
-        let searchParams: URLSearchParams = {
-            query,
-            page: String(page),
-            pageSize: String(pageSize)
-        }
-
         if(addSearchParams) {
-            searchParams = addSearchParams(searchParams);
+            const extraParams: any = addSearchParams();
+            const searchParams: SearchParams = {
+                query,
+                page: String(page),
+                pageSize: String(pageSize),
+                ...extraParams
+            }
+            setSearchParams(searchParams);
         }
-
-        setSearchParams(searchParams);
+        else {
+            const searchParams: SearchParams = {
+                query,
+                page: String(page),
+                pageSize: String(pageSize)
+            }
+            setSearchParams(searchParams);
+        }
     }
 
-    const refreshPage = () => updateSearchParams(page, pageSize);
+    const onSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+
+        if (value.trim() === '' && searchText.trim() !== '') {
+            console.log('Text cleared!');
+            updateSearchParams(1, pageSize);
+        }
+    };
 
     // Button handlers
     const onSearchClickHandler = () => updateSearchParams(page, pageSize);
@@ -138,7 +158,8 @@ export function InfoTable<T extends RowObject>({auth, endpoint, httpMethod, info
                 onSearchClickHandler();
             }}>
                 <div className="game-search">
-                    <input id="searchbox" type="search" ref={gameSearchText} placeholder="Enter text to search here" defaultValue={searchText} /> 
+                    <input id="searchbox" type="search" ref={gameSearchText} 
+                            placeholder="Enter text to search here" defaultValue={searchText} onChange={onSearchChange} /> 
                     <button type="submit" ref={buttonSearchRef}>Search</button>
                     <select value={String(pageSize)} onChange={(e) => {
 
@@ -149,7 +170,7 @@ export function InfoTable<T extends RowObject>({auth, endpoint, httpMethod, info
                     </select>
                     
                 </div>
-                {addPageNavigationElements && addPageNavigationElements(searchParams, refreshPage)}
+                {addPageNavigationElements && addPageNavigationElements(searchParams, onSearchClickHandler)}
             </form>
         </div>
         <div className="info-card-table">
@@ -164,8 +185,6 @@ export function InfoTable<T extends RowObject>({auth, endpoint, httpMethod, info
         </div>
         {buildPageButtons(searchResults,  onPrevClickHandler, onNextClickHandler)}
     </>
-
-    //document.getElementById("searchbox").addEventListener("search", );
 
 
     return infoCardPage;
