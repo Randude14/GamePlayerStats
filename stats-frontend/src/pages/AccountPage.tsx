@@ -176,7 +176,7 @@ function UpdateAccountField({label, currValue, field, endpoint}) {
             }
 
             const body = JSON.stringify({
-                [field]: inputRef.current.value
+                [field]: inputRef.current.value.trim()
             });
 
             const res = await fetchWithAuth(endpoint, HttpMethod.PATCH, body);

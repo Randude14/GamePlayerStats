@@ -54,7 +54,8 @@ export function PlayerStatsMePage() {
     }
 
     return <div>
-        {user && <h1><span className="highlight">{user.username}</span> Stats</h1>}
-        <InfoTable<PlayerStatRow> key={`PlayerStatMe-${refreshKey}`} auth={true} endpoint="player_stats/me/search" infoCardBuilder={cardGenerator} />
+        {user && <h1><span className="highlight">{`${user.username}'s`}</span> Stats</h1>}
+        <InfoTable<PlayerStatRow> key={`PlayerStatMe-${refreshKey}`} auth={true} searchInputPlaceholder="Enter text to search games for."
+                endpoint="player_stats/me/search" infoCardBuilder={cardGenerator} />
     </div>
 }

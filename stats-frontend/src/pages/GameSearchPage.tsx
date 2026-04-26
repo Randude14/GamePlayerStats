@@ -1,6 +1,5 @@
 import { useState, type ReactElement } from "react"
-import { InfoTable, type SearchParams } from "../components/InfoCardPage";
-import './GameSearchPage.css';
+import { InfoTable } from "../components/InfoCardPage";
 import { useToast } from "../context/ToastContext";
 import { useAuth } from "../context/useAuth";
 import { blankImage, getFirstObject } from "../util/Helpers";
@@ -27,7 +26,7 @@ export function GameSearchPage() {
 
     const [refreshKey, setRefreshKey] = useState<number>(1);
     const [ searchParams ] = useSearchParams();
-    const internalChecked: boolean = searchParams.has(INTERNAL_PARAM) ? Boolean(searchParams.get(INTERNAL_PARAM)) : true
+    const internalChecked: boolean = getInternalSearchParam(searchParams);
     const endpoint: string = internalChecked ? 'games/internal/search' : 'games/external/search'
 
     const infoCardBuilder =  (data: GameDataRow) => {
@@ -38,7 +37,7 @@ export function GameSearchPage() {
     const onImportHandler = () => setRefreshKey(v => v + 1);
         
     return <>
-        <InfoTable<GameDataRow> key={`$GameSearchPage-${refreshKey}`} auth={false} endpoint={endpoint} 
+        <InfoTable<GameDataRow> key={`$GameSearchPage-${refreshKey}`} auth={false} endpoint={endpoint} searchInputPlaceholder="Enter text to search for games."
                 httpMethod={HttpMethod.GET} infoCardBuilder={infoCardBuilder} 
                 addPageNavigationElements={addPageNavigationElements} addSearchParams={addSearchParams} />
     </>
@@ -46,6 +45,10 @@ export function GameSearchPage() {
 }
 
 // ------------ Helper Functions ----------------
+const getInternalSearchParam = (searchParams: URLSearchParams): boolean => {
+    return searchParams.has(INTERNAL_PARAM) ? Boolean(searchParams.get(INTERNAL_PARAM) === "true") : true;
+}
+
 const importGame = async (external_id: number): Promise<boolean> => {
     const res = await fetchWithNoAuth(`games/external/import/${external_id}`, HttpMethod.PUT);
     return res.ok;
@@ -101,7 +104,7 @@ const addSearchParams = () => {
 }
 
 const addPageNavigationElements = (searchParams: URLSearchParams, refreshPage: () => void) => {
-    const internalChecked: boolean = searchParams.has(INTERNAL_PARAM) ? Boolean(searchParams.get(INTERNAL_PARAM) === "true") : true
+    const internalChecked: boolean = getInternalSearchParam(searchParams);
 
     const internalLabelClicked = () => {
         const checkBoxRef: HTMLInputElement = document.getElementById(INTERNAL_CHECKBOX_ID) as HTMLInputElement;
@@ -111,7 +114,7 @@ const addPageNavigationElements = (searchParams: URLSearchParams, refreshPage: (
         }
     }
 
-    return <div className="game-search">
+    return <div className="info-search">
         <input type="checkbox" id={INTERNAL_CHECKBOX_ID} checked={internalChecked} onChange={
             (e) => {
                 e.preventDefault();

@@ -57,6 +57,7 @@ export function PlayerStatsAllPage() {
     
     return <div>
         <h1>All Player Stats</h1>
-        <InfoTable<PlayerStatRow> key={`PlayerStatAll-${refreshKey}`} auth={false} endpoint="player_stats/all/search" infoCardBuilder={cardGenerator}/>
+        <InfoTable<PlayerStatRow> key={`PlayerStatAll-${refreshKey}`} auth={false} searchInputPlaceholder="Enter text to search through stats."
+            endpoint="player_stats/all/search" infoCardBuilder={cardGenerator}/>
     </div>
 }

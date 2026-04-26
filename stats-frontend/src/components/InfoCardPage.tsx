@@ -12,10 +12,11 @@ export type SearchParams = {
     page: string
 }
 
-interface ColumnInfoSettings {
+interface InfoCardPageSettings {
     auth: boolean, // whether to use user token
     endpoint: string, // API endpoint to get rows from
     httpMethod?: string, // HTTP method to use, GET if not passed
+    searchInputPlaceholder: string,
     infoCardBuilder: (data: RowObject) => ReactElement, // Function passed to build the info cards
     addSearchParams?: () => any;
     addPageNavigationElements?: (params: URLSearchParams, refreshPage: () => void) => ReactElement;
@@ -32,7 +33,7 @@ function buildPageButtons<T extends RowObject>(searchResults: SearchResults<T>, 
 }
 
 // Generics type allows table to work with an inhertied object type
-export function InfoTable<T extends RowObject>({auth, endpoint, httpMethod, infoCardBuilder, addSearchParams, addPageNavigationElements }: ColumnInfoSettings) {
+export function InfoTable<T extends RowObject>({auth, endpoint, httpMethod, searchInputPlaceholder, infoCardBuilder, addSearchParams, addPageNavigationElements }: InfoCardPageSettings) {
 
     const { token } = useAuth();
 
@@ -152,16 +153,16 @@ export function InfoTable<T extends RowObject>({auth, endpoint, httpMethod, info
     const showResults: boolean = !!endpoint && !!searchResults;
 
     const infoCardPage =  <>
-        <div>
+        <div className="info-card-search-fields">
             <form onSubmit={(e) => {
                 e.preventDefault();
                 onSearchClickHandler();
             }}>
-                <div className="game-search">
-                    <input id="searchbox" type="search" ref={gameSearchText} 
-                            placeholder="Enter text to search here" defaultValue={searchText} onChange={onSearchChange} /> 
-                    <button type="submit" ref={buttonSearchRef}>Search</button>
-                    <select value={String(pageSize)} onChange={(e) => {
+                <div className="info-search">
+                    <div className="search-box-div"><input id="searchbox" type="search" ref={gameSearchText} 
+                            placeholder={searchInputPlaceholder} defaultValue={searchText} onChange={onSearchChange} /></div>
+                    <button className="info-search-option" type="submit" ref={buttonSearchRef}>Search</button>
+                    <select className="info-search-option" value={String(pageSize)} onChange={(e) => {
 
                             updateSearchParams(page, e.target.value)
                         }}>
