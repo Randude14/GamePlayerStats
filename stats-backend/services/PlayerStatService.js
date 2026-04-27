@@ -2,6 +2,12 @@ const AppError = require('../util/AppError');
 const extractExistingData = require('../util/extractExistingData');
 const {Table} = require('../util/tables');
 
+const PLAYER_STAT_FITLERS = {
+    PLAYER_AND_GAME: 0,
+    PLAYER_ONLY: 1,
+    GAME_ONLY: 2
+}
+
 class PlayerStatService {
 
     constructor(_knex) {
@@ -13,17 +19,25 @@ class PlayerStatService {
         return rows;
     }
 
-    async searchAllStatsFor(search, page, pageSize, searchForPlayer) {
+    
+
+    async searchAllStatsFor(search, page, pageSize, filter) {
         const offset = (page - 1) * pageSize;
         const trimmedQuery = search?.trim();
 
         // optional queries for searching by username or game title
         const applyFilters = (query) => {
+            
             if(trimmedQuery && trimmedQuery.length) {
-                if(searchForPlayer) {
+
+                if(filter === PLAYER_STAT_FITLERS.PLAYER_AND_GAME) {
+                    query.where('p.username', 'like', `%${trimmedQuery}%`)
+                        .orWhere('g.title', 'like', `%${trimmedQuery}%`);
+                }
+                else if(filter === PLAYER_STAT_FITLERS.PLAYER_ONLY) {
                     query.where('p.username', 'like', `%${trimmedQuery}%`);
                 }
-                else {
+                else if(filter === PLAYER_STAT_FITLERS.GAME_ONLY) {
                     query.where('g.title', 'like', `%${trimmedQuery}%`);
                 }
             }

@@ -49,54 +49,54 @@ export function InfoTable<T extends RowObject>({auth, endpoint, httpMethod, sear
     const pageSize: number = Number(searchParams.get('pageSize') || 30);
     const searchText: string = searchParams.get('query') || "";
 
-    useEffect(() => {
-        const fetchRows = async () => {
-            setLoading(true);
-            setErrorMessage(null);
+    const fetchRows = async () => {
+        setLoading(true);
+        setErrorMessage(null);
 
-            if(!endpoint) {
-                return;
-            }
+        if(!endpoint) {
+            return;
+        }
 
-            if (auth && !token) {
-                setErrorMessage("Please log in first.");
-                setSearchResults(null);
-                setLoading(false);
-                return;
-            }
-
-            const endpointFetch = auth ? fetchURLWithAuth : fetchURLWithNoAuth;
-            const url = new URL( buildUrl(endpoint) );
-            
-            for(const key of searchParams.keys()) {
-                url.searchParams.set(key, searchParams.get(key));
-            }
-
-            // for now assume endpoint already has the correct format before adding, this should probably get fixed later
-            const res = await endpointFetch(url.toString(), httpMethod || HttpMethod.GET);
-
-            let data: Promise<any> = null;
-            try {
-                data = await res.json();
-            } catch {
-                data = null;
-            }
-
-            if (!res.ok) {
-                const msg = extractMessage(data, "Failed to load data.");
-
-                setErrorMessage(msg);
-                setSearchResults(null);
-                setLoading(false);
-                return;
-            }
-
-            const results = data as SearchResults<T>;
-
-            setSearchResults(results);
+        if (auth && !token) {
+            setErrorMessage("Please log in first.");
+            setSearchResults(null);
             setLoading(false);
-        };
+            return;
+        }
 
+        const endpointFetch = auth ? fetchURLWithAuth : fetchURLWithNoAuth;
+        const url = new URL( buildUrl(endpoint) );
+        
+        for(const key of searchParams.keys()) {
+            url.searchParams.set(key, searchParams.get(key));
+        }
+
+        // for now assume endpoint already has the correct format before adding, this should probably get fixed later
+        const res = await endpointFetch(url.toString(), httpMethod || HttpMethod.GET);
+
+        let data: Promise<any> = null;
+        try {
+            data = await res.json();
+        } catch {
+            data = null;
+        }
+
+        if (!res.ok) {
+            const msg = extractMessage(data, "Failed to load data.");
+
+            setErrorMessage(msg);
+            setSearchResults(null);
+            setLoading(false);
+            return;
+        }
+
+        const results = data as SearchResults<T>;
+
+        setSearchResults(results);
+        setLoading(false);
+    };
+
+    useEffect(() => {
         fetchRows();
     }, [auth, endpoint, httpMethod, token, searchParams]);
 
@@ -114,25 +114,21 @@ export function InfoTable<T extends RowObject>({auth, endpoint, httpMethod, sear
 
     const updateSearchParams = (page: number | string, pageSize: number | string) => {
         const query: string = gameSearchText.current?.value || '';
+        let searchParams: SearchParams = {
+            query,
+            page: String(page),
+            pageSize: String(pageSize)
+        }
 
         if(addSearchParams) {
-            const extraParams: any = addSearchParams();
-            const searchParams: SearchParams = {
-                query,
-                page: String(page),
-                pageSize: String(pageSize),
+            const extraParams: any = addSearchParams() || {};
+            searchParams = {
+                ...searchParams,
                 ...extraParams
             }
-            setSearchParams(searchParams);
         }
-        else {
-            const searchParams: SearchParams = {
-                query,
-                page: String(page),
-                pageSize: String(pageSize)
-            }
-            setSearchParams(searchParams);
-        }
+
+        setSearchParams(searchParams);
     }
 
     const onSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -157,6 +153,7 @@ export function InfoTable<T extends RowObject>({auth, endpoint, httpMethod, sear
             <form onSubmit={(e) => {
                 e.preventDefault();
                 onSearchClickHandler();
+                fetchRows();
             }}>
                 <div className="info-search">
                     <div className="search-box-div"><input id="searchbox" type="search" ref={gameSearchText} 

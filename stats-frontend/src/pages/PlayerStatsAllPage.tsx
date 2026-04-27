@@ -17,6 +17,10 @@ type PlayerStatRow = {
     game_publishers: string[]
 }
 
+const FILTER_ID: string = 'StatFilter';
+const FILTER_PARAM: string = 'statFilter';
+const FILTER_OPTIONS: string[] = ['Both Player And Game', 'Player Only', 'Game Only'];
+
 const infoCardBuilder = (data: PlayerStatRow, currentUsername: string, updateGameCallback: () => void): ReactElement => {
 
     const datePurchased: string = new Date(data.date_purchased).toLocaleDateString();
@@ -54,10 +58,47 @@ export function PlayerStatsAllPage() {
     const cardGenerator = (data: PlayerStatRow) => {
         return infoCardBuilder(data, user?.username, updateGameCallback);
     }
+
+
     
     return <div>
         <h1>All Player Stats</h1>
         <InfoTable<PlayerStatRow> key={`PlayerStatAll-${refreshKey}`} auth={false} searchInputPlaceholder="Enter text to search through stats."
-            endpoint="player_stats/all/search" infoCardBuilder={cardGenerator}/>
+            endpoint="player_stats/all/search" infoCardBuilder={cardGenerator}
+            addPageNavigationElements={addPageNavigationElements} addSearchParams={addSearchParams}/>
+    </div>
+}
+
+const addSearchParams = () => {
+    const filterSelectRef: HTMLSelectElement = document.getElementById(FILTER_ID) as HTMLSelectElement;
+    if(filterSelectRef) {
+        return {
+            [FILTER_PARAM]: String(filterSelectRef.value)
+        }
+    }
+    return {};
+}
+
+const getStatFilter = (searchParams: URLSearchParams): number => {
+    return searchParams.has(FILTER_PARAM) ? Number(searchParams.get(FILTER_PARAM)) : 0;
+}
+
+const addPageNavigationElements = (searchParams: URLSearchParams, refreshPage: () => void) => {
+    let filter: number = getStatFilter(searchParams);
+    if(isNaN(filter)) filter = 0;
+
+    const filterChanged = () => {
+        refreshPage();
+    }
+
+    return <div className="info-search">
+        <label>Filter By:</label>
+        <select defaultValue={filter} id={FILTER_ID} onChange={filterChanged}>
+            {
+                FILTER_OPTIONS.map( (filter, index) => {
+                    return <option key={index} value={String(index)}>{filter}</option>
+                } )
+            }
+        </select>
     </div>
 }

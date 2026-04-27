@@ -60,8 +60,8 @@ class PlayerStatController {
         const queryToSearch = req.query.query?.trim();
         const page = Number(req.query.page) || 1;
         const pageSize = Number(req.query.pageSize) || 20;
-        const searchType = !!req.query.searchType ? Boolean(req.query.searchType) : true;
-        const playerStatResults = await this.playerStatService.searchAllStatsFor(queryToSearch, page, pageSize, searchType);
+        const statFilter = !!req.query.statFilter ? Number(req.query.statFilter) : 0;
+        const playerStatResults = await this.playerStatService.searchAllStatsFor(queryToSearch, page, pageSize, statFilter);
         return res.status(200).json(playerStatResults);
     }
 

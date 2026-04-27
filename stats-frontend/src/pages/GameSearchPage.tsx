@@ -97,7 +97,7 @@ const addSearchParams = () => {
     const checkBoxRef: HTMLInputElement = document.getElementById(INTERNAL_CHECKBOX_ID) as HTMLInputElement;
     if(checkBoxRef) {
         return {
-            internalSearch: String(checkBoxRef.checked)
+            [INTERNAL_PARAM]: String(checkBoxRef.checked)
         }
     }
     return {};
