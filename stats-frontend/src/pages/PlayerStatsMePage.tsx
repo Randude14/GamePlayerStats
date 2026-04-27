@@ -1,8 +1,10 @@
 import { useState, type ReactElement } from "react"
-import { InfoTable } from "../components/InfoCardPage";
+import { InfoTable, QUERY_PARAM_ID } from "../components/InfoCardPage";
 import { blankImage, getFirstObject } from "../util/Helpers";
 import { PlayerStatEditButton } from "../components/PlayerStatEditButton";
 import { useAuth } from "../context/useAuth";
+import { SEARCHBOX_ID } from "../components/InfoCardPage";
+import { HighlighLabelTag } from "../components/HighlightLabelTag";
 
 type PlayerStatRow = {
     player_id: number,
@@ -17,13 +19,14 @@ type PlayerStatRow = {
 }
 
 const infoCardBuilder = (data: PlayerStatRow, updateGameCallback: () => void): ReactElement => {
-
     const datePurchased: string = new Date(data.date_purchased).toLocaleDateString();
     const gameRelease: string = new Date(data.game_release).toLocaleDateString();
+    const params: URLSearchParams = new URLSearchParams(window.location.search);
+    const highlightedText: string = params.get(QUERY_PARAM_ID);
 
     return <div className="info-card-fields">
         <div><img className="info-card-image" src={data.game_cover_url || blankImage()}/></div>
-        <div><label>{data.game_title}</label></div>
+        <div><label> <HighlighLabelTag className="" text={data.game_title} highlightedText={highlightedText} /> </label></div>
         <div><label>{`Hours Played: ${data.hours_played}`}</label></div>
         <div><label>{ `Date Purchased: ${datePurchased}` }</label></div>
         <div><label>{ `Game Release: ${gameRelease}` }</label></div>

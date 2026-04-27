@@ -1,8 +1,10 @@
 import { useState, type ReactElement } from "react";
-import { InfoTable } from "../components/InfoCardPage";
+import { InfoTable, QUERY_PARAM_ID } from "../components/InfoCardPage";
 import { blankImage, getFirstObject } from "../util/Helpers";
 import { useAuth } from "../context/useAuth";
 import { PlayerStatEditButton } from "../components/PlayerStatEditButton";
+import { HighlighLabelTag } from "../components/HighlightLabelTag";
+import { useSearchParams } from "react-router-dom";
 
 type PlayerStatRow = {
     username: string,
@@ -21,16 +23,37 @@ const FILTER_ID: string = 'StatFilter';
 const FILTER_PARAM: string = 'statFilter';
 const FILTER_OPTIONS: string[] = ['Both Player And Game', 'Player Only', 'Game Only'];
 
+const buildHighlightedLabel = (condition: boolean, className: string, text: string, highlightedText: string): ReactElement => {
+    return condition ? 
+                <HighlighLabelTag className={className} text={text} highlightedText={highlightedText}  /> :
+                <label className={className}>{text}</label>;
+}
+
 const infoCardBuilder = (data: PlayerStatRow, currentUsername: string, updateGameCallback: () => void): ReactElement => {
 
     const datePurchased: string = new Date(data.date_purchased).toLocaleDateString();
     const gameRelease: string = new Date(data.game_release).toLocaleDateString();
     const isCurrentUser = currentUsername === data.username;
+    
+    const params: URLSearchParams = new URLSearchParams(window.location.search);
+    const highlightedText: string = params.get(QUERY_PARAM_ID);
+    
+    const filterSelectRef: HTMLSelectElement = document.getElementById(FILTER_ID) as HTMLSelectElement;
+    let filterSelection: string = '0';
+    if(filterSelectRef) {
+        filterSelection = filterSelectRef.value;
+    }
+
+    const gameTitleLabel: ReactElement = buildHighlightedLabel(
+                    filterSelection === '0' || filterSelection === '2', '', data.game_title, highlightedText);
+    const playerTitleLabel: ReactElement = buildHighlightedLabel(
+                    filterSelection === '0' || filterSelection === '1', '', data.username, highlightedText);
+    
 
     return <div className="info-card-fields">
         <div><img className="info-card-image" src={data.game_cover_url || blankImage()}/></div>
-        <div><label>{`User: ${data.username}`}</label></div>
-        <div><label>{data.game_title}</label></div>
+        <div><label>{`User: `}</label> {playerTitleLabel} </div>
+        <div>{ gameTitleLabel }</div>
         <div><label>{`Hours Played: ${data.hours_played}`}</label></div>
         <div><label>{ `Date Purchased: ${datePurchased}` }</label></div>
         <div><label>{ `Game Release: ${gameRelease}` }</label></div>
@@ -59,8 +82,6 @@ export function PlayerStatsAllPage() {
         return infoCardBuilder(data, user?.username, updateGameCallback);
     }
 
-
-    
     return <div>
         <h1>All Player Stats</h1>
         <InfoTable<PlayerStatRow> key={`PlayerStatAll-${refreshKey}`} auth={false} searchInputPlaceholder="Enter text to search through stats."

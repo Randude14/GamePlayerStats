@@ -12,6 +12,9 @@ export type SearchParams = {
     page: string
 }
 
+export const QUERY_PARAM_ID: string = 'query';
+export const SEARCHBOX_ID: string = 'searchbox';
+
 interface InfoCardPageSettings {
     auth: boolean, // whether to use user token
     endpoint: string, // API endpoint to get rows from
@@ -145,7 +148,6 @@ export function InfoTable<T extends RowObject>({auth, endpoint, httpMethod, sear
     const onPrevClickHandler = () => updateSearchParams(page-1, pageSize);
     const onNextClickHandler = () => updateSearchParams(page+1, pageSize);
 
-
     const showResults: boolean = !!endpoint && !!searchResults;
 
     const infoCardPage =  <>
@@ -156,7 +158,7 @@ export function InfoTable<T extends RowObject>({auth, endpoint, httpMethod, sear
                 fetchRows();
             }}>
                 <div className="info-search">
-                    <div className="search-box-div"><input id="searchbox" type="search" ref={gameSearchText} 
+                    <div className="search-box-div"><input id={SEARCHBOX_ID} type="search" ref={gameSearchText} 
                             placeholder={searchInputPlaceholder} defaultValue={searchText} onChange={onSearchChange} /></div>
                     <button className="info-search-option" type="submit" ref={buttonSearchRef}>Search</button>
                     <select className="info-search-option" value={String(pageSize)} onChange={(e) => {
