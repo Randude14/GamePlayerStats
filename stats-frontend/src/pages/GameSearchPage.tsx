@@ -1,11 +1,12 @@
 import { useState, type ReactElement } from "react"
-import { InfoTable } from "../components/InfoCardPage";
+import { InfoTable, QUERY_PARAM_ID } from "../components/InfoCardPage";
 import { useToast } from "../context/ToastContext";
 import { useAuth } from "../context/useAuth";
 import { blankImage, getFirstObject } from "../util/Helpers";
 import { PlayerStatEditButton } from "../components/PlayerStatEditButton";
 import { fetchWithNoAuth, HttpMethod } from "../util/serverRequests";
 import { useSearchParams } from "react-router-dom";
+import { HighlighLabelTag } from "../components/HighlightLabelTag";
 
 const INTERNAL_CHECKBOX_ID: string = "internal-checkbox";
 const INTERNAL_PARAM: string = "internalSearch"
@@ -58,6 +59,8 @@ const GameInfoCard = ({ data, onImport }: { data: GameDataRow, onImport: () => v
     const { token } = useAuth();
     const { toast } = useToast();
     const isLoggedIn = !!token;
+    const params: URLSearchParams = new URLSearchParams(window.location.search);
+    const highlightedText: string = params.get(QUERY_PARAM_ID);
 
     const importButtonHandler = async () =>{
             const imported = await importGame(data.external_id);
@@ -73,7 +76,7 @@ const GameInfoCard = ({ data, onImport }: { data: GameDataRow, onImport: () => v
 
     return <div className="info-card-fields">
         <div><img className="info-card-image" src={data.cover_url || blankImage()}/></div>
-        <div><label>{data.title}</label></div>
+        <div><HighlighLabelTag className="" text={data.title} highlightedText={highlightedText}/></div>
         <div><label>{ getFirstObject(data.developers) }</label></div>
         <div><label>{ getFirstObject(data.publishers) }</label></div>
         <div><label>{ data.release_date ? new Date(data.release_date).toLocaleDateString() : 'N/A' }</label></div>
