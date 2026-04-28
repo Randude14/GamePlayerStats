@@ -2,11 +2,15 @@ import { useState, type ReactElement } from "react"
 import { InfoTable, QUERY_PARAM_ID } from "../components/InfoCardPage";
 import { useToast } from "../context/ToastContext";
 import { useAuth } from "../context/useAuth";
-import { blankImage, getFirstObject } from "../util/Helpers";
+import { getFirstObject } from "../util/Helpers";
 import { PlayerStatEditButton } from "../components/PlayerStatEditButton";
 import { fetchWithNoAuth, HttpMethod } from "../util/serverRequests";
 import { useSearchParams } from "react-router-dom";
 import { HighlighLabelTag } from "../components/HighlightLabelTag";
+import { ImageViewProps } from "../components/ImageViewDetails";
+import type { Game } from "../util/Models";
+import { useEditPopup, type EditPopupSettings } from "../context/EditPopupContext";
+import { GameDetailsPopupGenerator } from "../components/GameDetailsPopupGenerator";
 
 const INTERNAL_CHECKBOX_ID: string = "internal-checkbox";
 const INTERNAL_PARAM: string = "internalSearch"
@@ -15,8 +19,15 @@ type GameDataRow = {
     title: string,
     publishers: string[],
     developers: string[],
-    release_date: string,
+    themes: string[],
+    platforms: string[],
+    player_perspectives: string[],
+    game_modes: string[],
+    genres: string[],
+    release: string,
     cover_url: string,
+    game_type: string,
+    canImport: boolean,
     isImported: boolean,
     external_id: number,
     internal_id: number
@@ -25,14 +36,29 @@ type GameDataRow = {
 // -------- Main Export ------------
 export function GameSearchPage() {
 
+    const { user } = useAuth();
+    const { showPopup } = useEditPopup();
     const [refreshKey, setRefreshKey] = useState<number>(1);
     const [ searchParams ] = useSearchParams();
     const internalChecked: boolean = getInternalSearchParam(searchParams);
-    const endpoint: string = internalChecked ? 'games/internal/search' : 'games/external/search'
+    const endpoint: string = internalChecked ? 'games/internal/search' : 'games/external/search';
+
+
 
     const infoCardBuilder =  (data: GameDataRow) => {
+        const gameDetailsPopupHandler = () => {
+            const game: Game = {
+                ...data,
+                id: data.internal_id,
+                created_at: null
+            };
+            const popupSettings: EditPopupSettings = GameDetailsPopupGenerator({ game, userId: user?.id });
 
-        return <GameInfoCard data={data} onImport={onImportHandler} />
+            showPopup(popupSettings);
+        }
+        
+
+        return <GameInfoCard data={data} onImport={onImportHandler} gameDetailsPopupHandler={gameDetailsPopupHandler} />
     }
 
     const onImportHandler = () => setRefreshKey(v => v + 1);
@@ -55,7 +81,7 @@ const importGame = async (external_id: number): Promise<boolean> => {
     return res.ok;
 }
 
-const GameInfoCard = ({ data, onImport }: { data: GameDataRow, onImport: () => void }): ReactElement => {
+const GameInfoCard = ({ data, onImport, gameDetailsPopupHandler }: { data: GameDataRow, onImport: () => void, gameDetailsPopupHandler: () => void }): ReactElement => {
     const { token } = useAuth();
     const { toast } = useToast();
     const isLoggedIn = !!token;
@@ -74,25 +100,38 @@ const GameInfoCard = ({ data, onImport }: { data: GameDataRow, onImport: () => v
             }
         };
 
+    const game: Game = {
+                    title: data.title,
+                    release: data.release,
+                    publishers: data.publishers,
+                    developers: data.developers,
+                    themes: data.themes,
+                    genres: data.genres,
+                    platforms: data.platforms,
+                    player_perspectives: data.player_perspectives,
+                    game_modes: data.game_modes,
+                    game_type: data.game_type,
+                    id: data.internal_id,
+                    cover_url: data.cover_url,
+                    isImported: data.isImported,
+                    canImport: data.canImport,
+                    created_at: null
+                };
+
+
+
     return <div className="info-card-fields">
-        <div><img className="info-card-image" src={data.cover_url || blankImage()}/></div>
+        <div><ImageViewProps game={game} /></div>
         <div><HighlighLabelTag className="" text={data.title} highlightedText={highlightedText}/></div>
         <div><label>{ getFirstObject(data.developers) }</label></div>
         <div><label>{ getFirstObject(data.publishers) }</label></div>
-        <div><label>{ data.release_date ? new Date(data.release_date).toLocaleDateString() : 'N/A' }</label></div>
-
-        {!data.isImported && <div><button onClick={importButtonHandler}>Import Game</button></div>}
+        <div><label>{ data.release ? new Date(data.release).toLocaleDateString() : 'N/A' }</label></div>
+        
+        {!data.isImported && data.canImport && <div><button onClick={importButtonHandler}>Import Game</button></div>}
         {data.isImported && <div><button disabled>Game Imported</button></div>}
+        <div><button onClick={gameDetailsPopupHandler}>View Details</button></div>
         {data.isImported && <PlayerStatEditButton 
-                game={{
-                    title: data.title,
-                    publisher: data.publishers.length ? data.publishers[0] : 'N/A',
-                    developer: data.developers.length ? data.developers[0] : 'N/A',
-                    release: data.release_date,
-                    id: data.internal_id,
-                    created_at: null
-                }
-        } disabled={!isLoggedIn} buttonLabel="Add Or Update" />}
+                game={game} disabled={!isLoggedIn} buttonLabel="Add Or Update" />}
     </div>
 }
 

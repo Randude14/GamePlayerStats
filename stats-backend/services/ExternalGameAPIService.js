@@ -22,6 +22,17 @@ class ExternalGameAPIService {
         };
     }
 
+    mapToName(objects) {
+        if(objects) {
+            return objects.map(obj => obj.name);
+        }
+        return null;
+    }
+
+    canImportExternalGame(game) {
+        return game?.game_type?.id === 0 || game?.game_type?.id === 4;
+    }
+
     async getIGDBToken() {
         if(this.igdbToken && Date.now() < this.tokenExpiresAt) {
             return this.igdbToken;
@@ -53,11 +64,20 @@ class ExternalGameAPIService {
         const safeSearch = search.replace(/"/g, '\\"');
         const res = await fetch('https://api.igdb.com/v4/games', 
                         this.getRequestInit(token, `
-                            search \"${safeSearch}\"; fields name, first_release_date,
-                            involved_companies.company.name,
-                            involved_companies.developer,
-                            involved_companies.publisher,
-                            cover.url; 
+                            search \"${safeSearch}\"; 
+                            fields
+                                name,
+                                game_type.type,
+                                first_release_date,
+                                cover.url,
+                                game_modes.name,
+                                genres.name,
+                                platforms.name,
+                                themes.name,
+                                player_perspectives.name,
+                                involved_companies.company.name,
+                                involved_companies.developer,
+                                involved_companies.publisher;
                             where version_parent = null;
                             limit ${pageSize};
                             offset ${offset};   
@@ -87,7 +107,7 @@ class ExternalGameAPIService {
             cover_url: game.cover?.url
                 ? `https:${game.cover.url.replace('t_thumb', 't_cover_big')}` // convert thumbnails to bigger images
                 : null,
-            release_date: game.first_release_date ? 
+            release: game.first_release_date ? 
                 new Date(game.first_release_date * 1000)
                 .toISOString().split('T')[0] : null,
             developers: game.involved_companies
@@ -98,7 +118,14 @@ class ExternalGameAPIService {
                 ?.filter(comp => comp.publisher)
                 .map(comp => comp.company?.name)
                 .filter(Boolean) || [],
+            game_modes: this.mapToName(game.game_modes),
+            game_type: game.game_type?.type ?? null,
+            themes: this.mapToName(game.themes),
+            platforms: this.mapToName(game.platforms),
+            genres: this.mapToName(game.genres),
+            player_perspectives: this.mapToName(game.player_perspectives),
             isImported: importedMap.has(game.id),
+            canImport: this.canImportExternalGame(game), // game ids 0 and 4 are the main game and standalone expansion
             internal_id: importedMap.get(game.id)?.id || null
         }));
 
@@ -148,6 +175,10 @@ class ExternalGameAPIService {
 
         if(data.length === 0) {
             throw new AppError(`Failed to find game with id ${external_id}.`, 400);
+        }
+
+        if(! this.canImportExternalGame(data[0])) {
+            throw new AppError(`Cannot import '${data[0].name}'. Games must be a main title or standalone expansion.`, 400);
         }
 
         // Covert and integrate the data

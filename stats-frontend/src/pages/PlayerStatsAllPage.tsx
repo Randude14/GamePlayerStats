@@ -1,10 +1,10 @@
 import { useState, type ReactElement } from "react";
 import { InfoTable, QUERY_PARAM_ID } from "../components/InfoCardPage";
-import { blankImage, getFirstObject } from "../util/Helpers";
+import { blankImage } from "../util/Helpers";
 import { useAuth } from "../context/useAuth";
 import { PlayerStatEditButton } from "../components/PlayerStatEditButton";
 import { HighlighLabelTag } from "../components/HighlightLabelTag";
-import { useSearchParams } from "react-router-dom";
+import type { EditPopupSettings } from "../context/EditPopupContext";
 
 type PlayerStatRow = {
     username: string,
@@ -62,8 +62,9 @@ const infoCardBuilder = (data: PlayerStatRow, currentUsername: string, updateGam
                     id: data.game_id,
                     title: data.game_title,
                     release: data.game_release || '1999-10-28',
-                    developer: getFirstObject(data.game_developers) || '',
-                    publisher: getFirstObject(data.game_publishers) || '',
+                    developers: data.game_developers,
+                    publishers: data.game_publishers,
+                    cover_url: data.game_cover_url,
                     created_at: null
                 }} 
                 disabled={false} buttonLabel="Update" successCallback={updateGameCallback}/>}

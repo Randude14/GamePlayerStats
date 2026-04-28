@@ -9,10 +9,19 @@ export interface Player {
 export interface Game {
   id: number;
   title: string;
-  developer: string;
-  publisher: string;
+  developers: string[];
+  publishers: string[];
+  themes?: string[];
+  genres?: string[];
+  platforms?: string[];
+  player_perspectives?: string[];
+  game_modes?: string[];
+  game_type?: string;
   release: string;
+  cover_url: string;
   created_at: string;
+  isImported?: boolean;
+  canImport?: boolean;
 }
 
 export interface PlayerStat {

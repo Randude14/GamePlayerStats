@@ -4,20 +4,15 @@ import './edit_popup.css'
 
 export const EditPopupContext = createContext(null);
 
-export const EditType = {
-    ADD: 0,
-    UPDATE: 1
-}
-
 export interface EditPopupSettings {
-    type: typeof EditType,
+    submitLabel: string,
     elementBuilder: () => ReactElement
     clickCallback: () => boolean
 }
 
 const BuildPopup = (settings: EditPopupSettings, closeHandler: () => void) => {
     if(settings.elementBuilder && settings.clickCallback) {
-        return <div className="edit-popup-background"> 
+        return <div className="edit-popup-background" onClick={closeHandler}> 
             <form className="edit-popup-window" onSubmit={(e) => {
                     e.preventDefault(); 
                     
@@ -28,7 +23,7 @@ const BuildPopup = (settings: EditPopupSettings, closeHandler: () => void) => {
 
                 {settings.elementBuilder()}
                 {<div className="edit-popup-actions">
-                    <button type="submit">{Number(settings.type) === EditType.ADD ? 'Save' : 'Update'}</button>
+                    <button type="submit">{settings.submitLabel}</button>
                     <button onClick={closeHandler}>Cancel</button>
                 </div>}
             </form>

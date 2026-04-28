@@ -1,9 +1,8 @@
 import { useState, type ReactElement } from "react"
 import { InfoTable, QUERY_PARAM_ID } from "../components/InfoCardPage";
-import { blankImage, getFirstObject } from "../util/Helpers";
+import { blankImage } from "../util/Helpers";
 import { PlayerStatEditButton } from "../components/PlayerStatEditButton";
 import { useAuth } from "../context/useAuth";
-import { SEARCHBOX_ID } from "../components/InfoCardPage";
 import { HighlighLabelTag } from "../components/HighlightLabelTag";
 
 type PlayerStatRow = {
@@ -33,10 +32,11 @@ const infoCardBuilder = (data: PlayerStatRow, updateGameCallback: () => void): R
         <PlayerStatEditButton 
         game={{
             id: data.game_id,
+            cover_url: data.game_cover_url,
             title: data.game_title,
             release: data.game_release || '1999-10-28',
-            developer: getFirstObject(data.game_developers) || '',
-            publisher: getFirstObject(data.game_publishers) || '',
+            developers: data.game_developers,
+            publishers: data.game_publishers,
             created_at: null
         }} 
         disabled={false} buttonLabel="Update" successCallback={updateGameCallback}/>

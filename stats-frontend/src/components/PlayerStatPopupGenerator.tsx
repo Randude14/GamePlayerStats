@@ -1,5 +1,5 @@
-import { EditType, type EditPopupSettings } from "../context/EditPopupContext";
-import { isValidDate } from "../util/Helpers";
+import { type EditPopupSettings } from "../context/EditPopupContext";
+import { getFirstObject, isValidDate } from "../util/Helpers";
 import type { Game, PlayerStat } from "../util/Models";
 import { fetchWithAuth, HttpMethod } from "../util/serverRequests";
 import './player-stat-edit.css'
@@ -17,8 +17,8 @@ const BuildPlayerStatPopup = (game: Game, datePurchased: string, hoursPlayed: nu
 
     return <div className="player-stat-edit">
         <label>{`Title: ${game.title}`}</label>
-        <label>{`Developer: ${game.developer}`}</label>
-        <label>{`Publisher: ${game.publisher}`}</label>
+        <label>{`Developer: ${getFirstObject(game.developers)}`}</label>
+        <label>{`Publisher: ${getFirstObject(game.publishers)}`}</label>
         <label>{`Release Date: ${new Date(game.release).toLocaleDateString()}`}</label>
         <label>Date Purchased: </label> <input type="date" id={DATE_PURCHASED_ID} defaultValue={datePurchased || ''}/>
         <label>Hours Played: </label> <input type="number" step="0.1" id={HOURS_PLAYED_ID} defaultValue={hoursPlayed || 0} />
@@ -29,7 +29,7 @@ export async function PlayerStatPopupGenerator(settings : PlayerStatEditSettings
 
     let datePurchased: string = null;
     let hoursPlayed: number = null;
-    let editType: typeof EditType = EditType.ADD;
+    let isImported: boolean = false;
     let statId: number = -1;
     const res = await fetchWithAuth(`player_stats/search/${settings.userId}/game/${settings.game.id}`, HttpMethod.GET);
 
@@ -41,7 +41,7 @@ export async function PlayerStatPopupGenerator(settings : PlayerStatEditSettings
             datePurchased = datePurchased.substring(0, Tindex);
         }
         hoursPlayed = Number(data.hours_played);
-        editType = EditType.UPDATE;
+        isImported = true;
         statId = data.id;
     }
 
@@ -71,7 +71,7 @@ export async function PlayerStatPopupGenerator(settings : PlayerStatEditSettings
     }
 
     const popupSettings: EditPopupSettings = {
-        type: editType,
+        submitLabel: isImported ? 'Update' : 'Addd',
         elementBuilder,
         clickCallback
     }

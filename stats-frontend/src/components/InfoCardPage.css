@@ -23,6 +23,11 @@
 .info-card-image {
     max-width: 200px;
     height: auto;
+    cursor: pointer;
+}
+
+.info-card-image:hover {
+    scale: 1.02
 }
 
 .info-search {
