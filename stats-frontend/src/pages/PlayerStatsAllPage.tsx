@@ -4,7 +4,7 @@ import { blankImage } from "../util/Helpers";
 import { useAuth } from "../context/useAuth";
 import { PlayerStatEditButton } from "../components/PlayerStatEditButton";
 import { HighlighLabelTag } from "../components/HighlightLabelTag";
-import type { EditPopupSettings } from "../context/EditPopupContext";
+import { ApiRoutes } from "../util/ApiRoutes";
 
 type PlayerStatRow = {
     username: string,
@@ -86,7 +86,7 @@ export function PlayerStatsAllPage() {
     return <div>
         <h1>All Player Stats</h1>
         <InfoTable<PlayerStatRow> key={`PlayerStatAll-${refreshKey}`} auth={false} searchInputPlaceholder="Enter text to search through stats."
-            endpoint="player_stats/all/search" infoCardBuilder={cardGenerator}
+            endpoint={ApiRoutes.SEARCH_PLAYER_STATS} infoCardBuilder={cardGenerator}
             addPageNavigationElements={addPageNavigationElements} addSearchParams={addSearchParams}/>
     </div>
 }
@@ -105,7 +105,7 @@ const getStatFilter = (searchParams: URLSearchParams): number => {
     return searchParams.has(FILTER_PARAM) ? Number(searchParams.get(FILTER_PARAM)) : 0;
 }
 
-const addPageNavigationElements = (searchParams: URLSearchParams, refreshPage: () => void) => {
+const addPageNavigationElements = (searchParams: URLSearchParams, refreshPage: (resetPage?: boolean) => void) => {
     let filter: number = getStatFilter(searchParams);
     if(isNaN(filter)) filter = 0;
 

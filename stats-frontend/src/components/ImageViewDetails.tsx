@@ -5,16 +5,17 @@ import type { Game } from "../util/Models";
 import { GameDetailsPopupGenerator } from "./GameDetailsPopupGenerator";
 
 interface ImageViewProps {
-    game: Game
+    game: Game,
+    game_external_id: number
 }
 
-export function ImageViewProps({ game }: ImageViewProps) {
+export function ImageViewProps({ game, game_external_id }: ImageViewProps) {
 
     const { showPopup } = useEditPopup();
     const { user } = useAuth();
 
     const onImgClickHandler = () => {
-        const popupSettings: EditPopupSettings = GameDetailsPopupGenerator({game, userId: user?.id});
+        const popupSettings: EditPopupSettings = GameDetailsPopupGenerator({game, userId: user?.id, game_external_id});
 
         if(popupSettings) {
             showPopup(popupSettings);

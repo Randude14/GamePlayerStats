@@ -11,6 +11,7 @@ import { useAuth } from './context/useAuth';
 import { EditPopupProvider } from './context/EditPopupContext';
 import { AccountPage } from './pages/AccountPage';
 import { PlayerStatsMePage } from './pages/PlayerStatsMePage';
+import { ApiProvider } from './context/ApiContext';
 
 
 function App() {
@@ -42,9 +43,13 @@ function ContextBuilder({ children }: { children: JSX.Element }) {
   return <>
     <AuthProvider>
       <ToastProvider>
-        <EditPopupProvider>
-          {children}
-        </EditPopupProvider>
+        <ApiProvider>
+          <EditPopupProvider>
+          
+            {children}
+          
+          </EditPopupProvider>
+        </ApiProvider>
       </ToastProvider>
     </AuthProvider>
   </>

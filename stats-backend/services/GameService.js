@@ -38,44 +38,52 @@ class GameService {
     }
 
     async createGame(data) {
-        const {title, developers, publishers, release, cover_url, external_id, external_source} = data;
+        const {title, release, external_id, external_source} = data;
 
         if(!title || !release) {
             throw new AppError('title and/or release not provided.', 400);
         }
 
-        let gameCheck = await this.knex(Table.GAME_TABLE)
-                                .where({
-                                    title: title,
-                                    release: release
-                                }).first();
+        console.log();
 
-        if(gameCheck) {
-            throw new AppError('This game already exists.', 409);
-        }
+        if(external_id && external_source) {
+            const gameCheck = await this.knex(Table.GAME_TABLE)
+                        .where({
+                            external_id,
+                            external_source
+                        }).first();
 
-        gameCheck = await this.knex(Table.GAME_TABLE)
-                                .whereNotNull('external_id')
-                                .where({
-                                    external_id
-                                }).first();
-
-        if(gameCheck) {
-            throw new AppError('This game has already been imported.', 400);
+            if(gameCheck) {
+                throw new AppError('This game already exists.', 409);
+            }
         }
 
         const game = await this.knex(Table.GAME_TABLE).insert({
-            title,
-            release,
-            developers,
-            publishers,
-            cover_url,
-            external_id,
-            external_source,
+            ...data,
             created_at: this.knex.fn.now()
         });
 
         return game;
+    }
+
+    stringToJson(value) {
+        if (!value) {
+            return [];
+        }
+
+        if (Array.isArray(value)) {
+            return value;
+        }
+
+        if (typeof value !== "string") {
+            return value;
+        }
+
+        try {
+            return JSON.parse(value);
+        } catch {
+            return [value];
+        }
     }
 
     async searchGames(search, page=1, pageSize=20) {
@@ -96,11 +104,19 @@ class GameService {
         const totalPages = Math.ceil(totalResults / pageSize) ; 
 
         // Add isImported flag
-        const results = internalGames.map(game => { return {
-            ...game, 
+        const results = internalGames.map(game => ({
+            ...game,
             isImported: true,
-            internal_id: game.id
-        } });
+            internal_id: game.id,
+            developers: this.stringToJson(game.developers),
+            publishers: this.stringToJson(game.publishers),
+            platforms: this.stringToJson(game.platforms),
+            themes: this.stringToJson(game.themes),
+            genres: this.stringToJson(game.genres),
+            player_perspectives: this.stringToJson(game.player_perspectives),
+            game_modes: this.stringToJson(game.game_modes),
+        }));
+
 
         return {
             query: search,

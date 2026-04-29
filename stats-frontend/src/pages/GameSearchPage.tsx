@@ -1,16 +1,17 @@
 import { useState, type ReactElement } from "react"
 import { InfoTable, QUERY_PARAM_ID } from "../components/InfoCardPage";
-import { useToast } from "../context/ToastContext";
 import { useAuth } from "../context/useAuth";
 import { getFirstObject } from "../util/Helpers";
 import { PlayerStatEditButton } from "../components/PlayerStatEditButton";
-import { fetchWithNoAuth, HttpMethod } from "../util/serverRequests";
 import { useSearchParams } from "react-router-dom";
 import { HighlighLabelTag } from "../components/HighlightLabelTag";
 import { ImageViewProps } from "../components/ImageViewDetails";
 import type { Game } from "../util/Models";
 import { useEditPopup, type EditPopupSettings } from "../context/EditPopupContext";
 import { GameDetailsPopupGenerator } from "../components/GameDetailsPopupGenerator";
+import { ApiRoutes } from "../util/ApiRoutes";
+import { HttpMethod } from "../util/serverRequests";
+import { ImportButton } from "../components/ImportButton";
 
 const INTERNAL_CHECKBOX_ID: string = "internal-checkbox";
 const INTERNAL_PARAM: string = "internalSearch"
@@ -41,9 +42,9 @@ export function GameSearchPage() {
     const [refreshKey, setRefreshKey] = useState<number>(1);
     const [ searchParams ] = useSearchParams();
     const internalChecked: boolean = getInternalSearchParam(searchParams);
-    const endpoint: string = internalChecked ? 'games/internal/search' : 'games/external/search';
+    const endpoint: string = internalChecked ? ApiRoutes.GAME_INTERNAL_SEARCH : ApiRoutes.GAME_EXTERNAL_SEARCH;
 
-
+    const onImportHandler = () => setRefreshKey(v => v + 1);
 
     const infoCardBuilder =  (data: GameDataRow) => {
         const gameDetailsPopupHandler = () => {
@@ -52,7 +53,7 @@ export function GameSearchPage() {
                 id: data.internal_id,
                 created_at: null
             };
-            const popupSettings: EditPopupSettings = GameDetailsPopupGenerator({ game, userId: user?.id });
+            const popupSettings: EditPopupSettings = GameDetailsPopupGenerator({ game, userId: user?.id, game_external_id: data.external_id, toastMessage: () => 'Yes' });
 
             showPopup(popupSettings);
         }
@@ -60,8 +61,6 @@ export function GameSearchPage() {
 
         return <GameInfoCard data={data} onImport={onImportHandler} gameDetailsPopupHandler={gameDetailsPopupHandler} />
     }
-
-    const onImportHandler = () => setRefreshKey(v => v + 1);
         
     return <>
         <InfoTable<GameDataRow> key={`$GameSearchPage-${refreshKey}`} auth={false} endpoint={endpoint} searchInputPlaceholder="Enter text to search for games."
@@ -76,29 +75,11 @@ const getInternalSearchParam = (searchParams: URLSearchParams): boolean => {
     return searchParams.has(INTERNAL_PARAM) ? Boolean(searchParams.get(INTERNAL_PARAM) === "true") : true;
 }
 
-const importGame = async (external_id: number): Promise<boolean> => {
-    const res = await fetchWithNoAuth(`games/external/import/${external_id}`, HttpMethod.PUT);
-    return res.ok;
-}
-
-const GameInfoCard = ({ data, onImport, gameDetailsPopupHandler }: { data: GameDataRow, onImport: () => void, gameDetailsPopupHandler: () => void }): ReactElement => {
+const GameInfoCard = ({ data, gameDetailsPopupHandler, onImport }: { data: GameDataRow, onImport: () => void, gameDetailsPopupHandler: () => void }): ReactElement => {
     const { token } = useAuth();
-    const { toast } = useToast();
     const isLoggedIn = !!token;
     const params: URLSearchParams = new URLSearchParams(window.location.search);
     const highlightedText: string = params.get(QUERY_PARAM_ID);
-
-    const importButtonHandler = async () =>{
-            const imported = await importGame(data.external_id);
-
-            if(imported) {
-                onImport();
-                toast.success('Game imported!');
-            }
-            else {
-                toast.error('Something went wrong. Could not import game.');
-            }
-        };
 
     const game: Game = {
                     title: data.title,
@@ -121,13 +102,13 @@ const GameInfoCard = ({ data, onImport, gameDetailsPopupHandler }: { data: GameD
 
 
     return <div className="info-card-fields">
-        <div><ImageViewProps game={game} /></div>
+        <div><ImageViewProps game={game} game_external_id={data.external_id} /></div>
         <div><HighlighLabelTag className="" text={data.title} highlightedText={highlightedText}/></div>
         <div><label>{ getFirstObject(data.developers) }</label></div>
         <div><label>{ getFirstObject(data.publishers) }</label></div>
         <div><label>{ data.release ? new Date(data.release).toLocaleDateString() : 'N/A' }</label></div>
         
-        {!data.isImported && data.canImport && <div><button onClick={importButtonHandler}>Import Game</button></div>}
+        <div><ImportButton game_external_id={data.external_id} isImported={data.isImported} canImport={data.canImport} onImport={onImport} /></div>
         {data.isImported && <div><button disabled>Game Imported</button></div>}
         <div><button onClick={gameDetailsPopupHandler}>View Details</button></div>
         {data.isImported && <PlayerStatEditButton 
@@ -145,14 +126,14 @@ const addSearchParams = () => {
     return {};
 }
 
-const addPageNavigationElements = (searchParams: URLSearchParams, refreshPage: () => void) => {
+const addPageNavigationElements = (searchParams: URLSearchParams, refreshPage: (resetPage?: boolean) => void) => {
     const internalChecked: boolean = getInternalSearchParam(searchParams);
 
     const internalLabelClicked = () => {
         const checkBoxRef: HTMLInputElement = document.getElementById(INTERNAL_CHECKBOX_ID) as HTMLInputElement;
         if(checkBoxRef) {
             checkBoxRef.checked = !checkBoxRef.checked;
-            refreshPage();
+            refreshPage(true);
         }
     }
 
@@ -161,7 +142,7 @@ const addPageNavigationElements = (searchParams: URLSearchParams, refreshPage: (
             (e) => {
                 e.preventDefault();
                 if(e.target) {
-                    refreshPage();
+                    refreshPage(true);
                 }
             }
         } /> 

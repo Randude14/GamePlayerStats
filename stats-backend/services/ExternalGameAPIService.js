@@ -23,10 +23,69 @@ class ExternalGameAPIService {
     }
 
     mapToName(objects) {
-        if(objects) {
-            return objects.map(obj => obj.name);
+        if (!objects || !Array.isArray(objects)) {
+            return JSON.stringify([]);
         }
-        return null;
+
+        return JSON.stringify(
+            objects
+                .map(obj => obj?.name)
+                .filter(Boolean)
+        );
+    }
+
+
+
+    mapDataToGame(game, shouldStringify) {
+
+        const mapToArray = (objects, transform = (x) => x.name) => {
+            if (!objects || !Array.isArray(objects)) return shouldStringify ? JSON.stringify([]) : [];
+
+            const mapped = objects
+                .map(transform)
+                .filter(Boolean);
+
+            return shouldStringify ? JSON.stringify(mapped) : mapped;
+        }
+        
+        const developers = mapToArray(
+                    game.involved_companies?.filter(c => c.developer),
+                    c => c.company?.name
+                );
+
+        const publishers = mapToArray(
+                    game.involved_companies?.filter(c => c.publisher),
+                    c => c.company?.name
+                );
+
+        const game_modes = mapToArray(game.game_modes, c => c.name);
+        const genres = mapToArray(game.genres, c => c.name);
+        const platforms = mapToArray(game.platforms, c => c.name);
+        const themes = mapToArray(game.themes, c => c.name);
+        const player_perspectives = mapToArray(game.player_perspectives, c => c.name);
+
+        return {
+            external_id: game.id,
+            title: game.name,
+
+            cover_url: game.cover?.url
+                ? `https:${game.cover.url.replace('t_thumb', 't_cover_big')}`
+                : null,
+
+            release: game.first_release_date
+                ? new Date(game.first_release_date * 1000)
+                        .toISOString().split('T')[0]
+                : null,
+
+            game_type: game.game_type?.type ?? null,
+            developers,
+            publishers,
+            game_modes,
+            genres,
+            platforms,
+            themes,
+            player_perspectives
+        };
     }
 
     canImportExternalGame(game) {
@@ -101,33 +160,16 @@ class ExternalGameAPIService {
 
         const data = await res.json();
 
-        const results = data.map(game => ({
-            external_id: game.id,
-            title: game.name,
-            cover_url: game.cover?.url
-                ? `https:${game.cover.url.replace('t_thumb', 't_cover_big')}` // convert thumbnails to bigger images
-                : null,
-            release: game.first_release_date ? 
-                new Date(game.first_release_date * 1000)
-                .toISOString().split('T')[0] : null,
-            developers: game.involved_companies
-                ?.filter(comp => comp.developer)
-                .map(comp => comp.company?.name)
-                .filter(Boolean) || [],
-            publishers: game.involved_companies
-                ?.filter(comp => comp.publisher)
-                .map(comp => comp.company?.name)
-                .filter(Boolean) || [],
-            game_modes: this.mapToName(game.game_modes),
-            game_type: game.game_type?.type ?? null,
-            themes: this.mapToName(game.themes),
-            platforms: this.mapToName(game.platforms),
-            genres: this.mapToName(game.genres),
-            player_perspectives: this.mapToName(game.player_perspectives),
-            isImported: importedMap.has(game.id),
-            canImport: this.canImportExternalGame(game), // game ids 0 and 4 are the main game and standalone expansion
-            internal_id: importedMap.get(game.id)?.id || null
-        }));
+        const results = data.map(game => {
+            const mappedGame = this.mapDataToGame(game, false);
+
+            return {
+                ...mappedGame,
+                isImported: importedMap.has(game.id),
+                canImport: this.canImportExternalGame(game), // game ids 0 and 4 are the main game and standalone expansion
+                internal_id: importedMap.get(game.id)?.id || null
+            }
+        });
 
         const countRes = await fetch('https://api.igdb.com/v4/games/count',
                             this.getRequestInit(token, `
@@ -159,11 +201,19 @@ class ExternalGameAPIService {
         const token = await this.getIGDBToken();
         const res = await fetch('https://api.igdb.com/v4/games', 
                         this.getRequestInit(token, `
-                            fields name, first_release_date,
-                            involved_companies.company.name,
-                            involved_companies.developer,
-                            involved_companies.publisher,
-                            cover.url; 
+                            fields
+                                name,
+                                game_type.type,
+                                first_release_date,
+                                cover.url,
+                                game_modes.name,
+                                genres.name,
+                                platforms.name,
+                                themes.name,
+                                player_perspectives.name,
+                                involved_companies.company.name,
+                                involved_companies.developer,
+                                involved_companies.publisher;
                             where id=${external_id};
                         `));
 
@@ -182,25 +232,7 @@ class ExternalGameAPIService {
         }
 
         // Covert and integrate the data
-        const externalGameData = data.map(game => ({
-            external_id: game.id,
-            title: game.name,
-            cover_url: game.cover?.url
-                ? `https:${game.cover.url.replace('t_thumb', 't_cover_big')}` // convert thumbnails to bigger images
-                : null,
-            external_source: 'igdb',
-            release: game.first_release_date ? 
-                new Date(game.first_release_date * 1000)
-                .toISOString().split('T')[0] : null,
-            developers: JSON.stringify(game.involved_companies
-                ?.filter(comp => comp.developer)
-                .map(comp => comp.company?.name)
-                .filter(Boolean) || []),
-            publishers: JSON.stringify(game.involved_companies
-                ?.filter(comp => comp.publisher)
-                .map(comp => comp.company?.name)
-                .filter(Boolean) || [])
-        }));
+        const externalGameData = data.map(game => this.mapDataToGame(game, true));
 
         const externalGame = externalGameData[0];   
         return externalGame;

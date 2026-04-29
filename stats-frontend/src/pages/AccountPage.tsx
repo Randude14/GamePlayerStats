@@ -1,16 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import { fetchWithAuth, fetchWithNoAuth, HttpMethod } from "../util/serverRequests";
 import { useAuth } from "../context/useAuth";
 import { AccountLoginPage } from "../components/AccountLoginPage";
 import { AccountCreatePage } from "../components/AccountCreatePage";
 import './AccountPage.css'
 import { useToast } from "../context/ToastContext";
-import { extractMessage } from "../util/Helpers";
 import type { PlayerDashboard } from "../util/Models";
+import { useApi } from "../context/ApiContext";
 
 export function AccountPage() {
     const { user, token, logout } = useAuth();
     const { toast } = useToast();
+    const { getPlayerDashboard } = useApi();
     const [createAccount, setCreateAccount] = useState(false);
     const [ dashboardInfo, setDashboardInfo ] = useState<PlayerDashboard | null>(null);
     const [isLoading, setIsLoading ] = useState(true);
@@ -21,23 +21,15 @@ export function AccountPage() {
     }
 
     useEffect(() => {
-        if(user && user.id) {
-            const fetchData = async () => {
-                const res = await fetchWithNoAuth(`player_stats/dashboard/${user.id}`, HttpMethod.GET);
-
-                if(res.ok) {
-                    const info: PlayerDashboard = await res.json();
-                    setDashboardInfo(info);
-                }
-                else {
-                    toast.error('Failed to get dashboard information for user ' + user.username);
-                }
-
+        const fetchDashboard = async () => {
+            if(user && user.id) {
+                const dashboard: PlayerDashboard = await getPlayerDashboard(user.id);
+                setDashboardInfo(dashboard);
                 setIsLoading(false);
             }
-
-            fetchData();
         }
+
+        fetchDashboard();
     }, [user, toast]);
 
     if(token) {
@@ -58,8 +50,8 @@ export function AccountPage() {
 
                     <div className="profile-card">
                         <h3>Update Info</h3>
-                        <UpdateAccountField label='Username: ' currValue={dashboardInfo.username} field={'username'} endpoint={'players/me/username'}/>
-                        <UpdateAccountField label='Name: ' currValue={dashboardInfo.name} field={'name'} endpoint={'players/me/name'}/>
+                        <UpdateAccountField label='Username: ' currValue={dashboardInfo.username} field={'username'}/>
+                        <UpdateAccountField label='Name: ' currValue={dashboardInfo.name} field={'name'}/>
                     </div>
                     <div className="profile-card">
                         <h3>Update Password</h3>
@@ -96,28 +88,18 @@ export function AccountPage() {
 }
 
 function UpdatePassword() {
+    const { updatePlayerPassword } = useApi();
+
     const oldPasswordRef = useRef<null | HTMLInputElement>(null);
     const newPasswordRef = useRef<null | HTMLInputElement>(null);
     const confirmPasswordRef = useRef<null | HTMLInputElement>(null);
     const updatePasswordButtonRef = useRef<null | HTMLButtonElement>(null);
     const [message, setMessage] = useState(null);
-    const { toast } = useToast();
 
     const onClickHandler = async () => {
         const old_password = oldPasswordRef.current.value;
         const new_password = newPasswordRef.current.value;
-        const body = JSON.stringify({old_password, new_password})
-
-        const res = await fetchWithAuth('players/me/password', HttpMethod.PATCH, body);
-        const data = await res.json();
-        const mess = extractMessage(data, 'Failed to update!');
-
-        if(res.ok) {
-            toast.success(mess);
-        }
-        else {
-            toast.error(mess);
-        }
+        await updatePlayerPassword(old_password, new_password);
     }
 
     const onChangeHandler = async () => {
@@ -156,8 +138,9 @@ function UpdatePassword() {
     </>
 }
 
-function UpdateAccountField({label, currValue, field, endpoint}) {
+function UpdateAccountField({label, currValue, field}) {
     const inputRef = useRef<null | HTMLInputElement>(null);
+    const { updatePlayerName, updatePlayerUsername } = useApi();
     const { refreshPlayer } = useAuth();
     const { toast } = useToast();
 
@@ -175,20 +158,17 @@ function UpdateAccountField({label, currValue, field, endpoint}) {
                 return;
             }
 
-            const body = JSON.stringify({
-                [field]: inputRef.current.value.trim()
-            });
+            let updateFunc: (value: string) => Promise<boolean> = null;
 
-            const res = await fetchWithAuth(endpoint, HttpMethod.PATCH, body);
-            const data = await res.json();
-            const mess = data.message || data.msg || (res.ok ? 'Updated!' : 'Failed to update!');
-            
-            if(res.ok) {
-                toast.success(mess);
-                refreshPlayer();
-            }
-            else {
-                toast.error(mess);
+            if(field === 'name') updateFunc = updatePlayerName;
+            if(field === 'username') updateFunc = updatePlayerUsername;
+
+            if(updateFunc) {
+                const isUpdated: boolean = await updateFunc(input.trim());
+
+                if(isUpdated) {
+                    refreshPlayer();
+                }
             }
         }
     }

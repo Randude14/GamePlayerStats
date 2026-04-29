@@ -1,7 +1,6 @@
 import { useRef } from "react"
 import { useToast } from "../context/ToastContext";
-import { fetchWithNoAuth, HttpMethod } from "../util/serverRequests";
-import { useAuth } from "../context/useAuth";
+import { useApi } from "../context/ApiContext";
 
 
 interface AccountCreatePageProps {
@@ -11,7 +10,7 @@ interface AccountCreatePageProps {
 export function AccountCreatePage({backToLoginPage} : AccountCreatePageProps) {
 
     const { toast } = useToast();
-    const { login } = useAuth();
+    const { createPlayer } = useApi();
 
     const nameRef = useRef<HTMLInputElement>(null);
     const usernameRef = useRef<HTMLInputElement>(null);
@@ -26,17 +25,7 @@ export function AccountCreatePage({backToLoginPage} : AccountCreatePageProps) {
         const password = passwordRef.current.value;
 
         if(isDataValid(name, username, email, password)) {
-            const body = JSON.stringify({name, username, email, password})
-
-            const res = await fetchWithNoAuth('players', HttpMethod.POST, body);
-
-            if(res.ok) {
-                const data = await res.json();
-                login(data);
-            }
-            else {
-                toast.error('Invalid credentials.')
-            }
+            await createPlayer(name, username, email, password);
         }
         else {
             toast.error('Please fill in all fields.');

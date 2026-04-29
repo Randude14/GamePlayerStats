@@ -1,4 +1,3 @@
-// src/context/AuthContext.tsx
 import { createContext, useContext, useState, type ReactElement } from "react";
 import './edit_popup.css'
 

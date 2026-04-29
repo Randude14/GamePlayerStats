@@ -1,7 +1,5 @@
-import { useRef, useState } from "react";
-import { useAuth } from "../context/useAuth";
-import { fetchWithNoAuth, HttpMethod } from "../util/serverRequests";
-import { useToast } from "../context/ToastContext";
+import { useRef } from "react";
+import { useApi } from "../context/ApiContext";
 
 interface AccountLoginProps {
     backToCreatePage: () => void;
@@ -9,43 +7,17 @@ interface AccountLoginProps {
 
 export function AccountLoginPage({backToCreatePage} : AccountLoginProps) {
 
+    const { authPlayer } = useApi();
+
     const emailRef = useRef<HTMLInputElement | null>(null);
     const passwordRef = useRef<HTMLInputElement | null>(null);
 
-    const { logout, login } = useAuth();
-    const { toast } = useToast();
 
     const loginClickHandler = async () => {
         if(emailRef.current && passwordRef.current) {
             const emailText: string = emailRef.current.value;
             const passwordText: string = passwordRef.current.value;
-            const body: string = JSON.stringify({email: emailText, password: passwordText});
-
-            try {
-                const res = await fetchWithNoAuth('auth/login', HttpMethod.POST, body);
-                const data = await res.json();
-
-                if(res.status >= 400) {
-                    let msg = data.message || data.msg;
-                    if(!msg && Array.isArray(data.errors)) {
-                        msg = data.errors[0].msg;
-                    }
-                    logout();
-                    toast.error('Invalid credentials.');
-                }
-                else {
-                    login(data);
-
-                    toast.success(`Welcome back!`);
-                }
-            }
-            catch (error: unknown) {
-                if (error instanceof Error) {
-                    console.log(error.message);
-                } else {
-                    console.log("An unknown error occurred", String(error));
-                }
-            }
+            await authPlayer(emailText, passwordText);
         }
     }
 

@@ -4,6 +4,7 @@ import { blankImage } from "../util/Helpers";
 import { PlayerStatEditButton } from "../components/PlayerStatEditButton";
 import { useAuth } from "../context/useAuth";
 import { HighlighLabelTag } from "../components/HighlightLabelTag";
+import { ApiRoutes } from "../util/ApiRoutes";
 
 type PlayerStatRow = {
     player_id: number,
@@ -59,6 +60,6 @@ export function PlayerStatsMePage() {
     return <div>
         {user && <h1><span className="highlight">{`${user.username}'s`}</span> Stats</h1>}
         <InfoTable<PlayerStatRow> key={`PlayerStatMe-${refreshKey}`} auth={true} searchInputPlaceholder="Enter text to search games for."
-                endpoint="player_stats/me/search" infoCardBuilder={cardGenerator} />
+                endpoint={ApiRoutes.SEARCH_PLAYER_STATS_ME} infoCardBuilder={cardGenerator} />
     </div>
 }

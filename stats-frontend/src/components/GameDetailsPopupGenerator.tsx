@@ -2,11 +2,16 @@ import type { ReactElement } from "react";
 import { blankImage, getFirstObject } from "../util/Helpers";
 import type { Game } from "../util/Models";
 import type { EditPopupSettings } from "../context/EditPopupContext";
+import { ImportButton } from "./ImportButton";
 
 interface GamePopupSettings {
     game: Game,
-    userId: string
+    game_external_id: number,
+    userId: string,
+    toastMessage: (success: boolean, message: string) => void
 }
+
+const MESSAGE_LABEL_ID: string = 'game-details-label';
 
 const buildLabelArray = (prefix: string, labels: string[]): ReactElement => {
 
@@ -20,7 +25,7 @@ const buildLabelArray = (prefix: string, labels: string[]): ReactElement => {
     return <></>
 }
 
-function GameDetailsPopup({ game, userId }: GamePopupSettings): ReactElement {
+function GameDetailsPopup({ game, userId, game_external_id }: GamePopupSettings): ReactElement {
 
     return <>
         <div><img className="info-card-image" src={game.cover_url || blankImage()}/></div>
@@ -29,10 +34,13 @@ function GameDetailsPopup({ game, userId }: GamePopupSettings): ReactElement {
         <div><label>{ getFirstObject(game.publishers) }</label></div>
         {game.game_type && <div><label>{ game.game_type }</label></div>}
         { buildLabelArray('Game Modes: ', game.game_modes) }
+        { buildLabelArray('Platforms: ', game.platforms) }
         { buildLabelArray('Player Perspectives: ', game.player_perspectives) }
         { buildLabelArray('Themes: ', game.themes) }
         { buildLabelArray('Genre: ', game.genres) }
         <div><label>{ game.release ? new Date(game.release).toLocaleDateString() : 'N/A' }</label></div>
+        {!!userId && <div><ImportButton game_external_id={game_external_id} isImported={game.isImported} canImport={game.canImport} /></div>}
+        <label id={MESSAGE_LABEL_ID}>{''}</label>
     </>
 
 }

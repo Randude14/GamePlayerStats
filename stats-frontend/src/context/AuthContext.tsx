@@ -2,6 +2,7 @@
 import { createContext, useState, useEffect, useCallback } from "react";
 import type {Player} from "../util/Models"
 import { fetchWithAuth, HttpMethod } from "../util/serverRequests";
+import { ApiRoutes } from "../util/ApiRoutes";
 
 export const AuthContext = createContext(null);
 
@@ -22,7 +23,7 @@ export const AuthProvider = ({ children }) => {
 
     const refreshPlayer = useCallback(
         () => {
-            fetchWithAuth('players/me', HttpMethod.GET).then(async (res) => {
+            fetchWithAuth(ApiRoutes.GET_PLAYER_ME_INFO, HttpMethod.GET).then(async (res) => {
                 if(res.ok) {
                     const _user: Player = await res.json();
                     setUser(_user);

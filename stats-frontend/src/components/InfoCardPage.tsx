@@ -5,6 +5,7 @@ import './InfoCardPage.css'
 import type { RowObject, SearchResults } from "../util/Models";
 import { extractMessage } from "../util/Helpers";
 import { useSearchParams } from "react-router-dom";
+import { useApi } from "../context/ApiContext";
 
 export type SearchParams = {
     query: string,
@@ -22,7 +23,7 @@ interface InfoCardPageSettings {
     searchInputPlaceholder: string,
     infoCardBuilder: (data: RowObject) => ReactElement, // Function passed to build the info cards
     addSearchParams?: () => any;
-    addPageNavigationElements?: (params: URLSearchParams, refreshPage: () => void) => ReactElement;
+    addPageNavigationElements?: (params: URLSearchParams, refreshPage: (resetPage?: boolean) => void) => ReactElement;
 }
 
 type ClickHandler = () => void;
@@ -38,6 +39,7 @@ function buildPageButtons<T extends RowObject>(searchResults: SearchResults<T>, 
 // Generics type allows table to work with an inhertied object type
 export function InfoTable<T extends RowObject>({auth, endpoint, httpMethod, searchInputPlaceholder, infoCardBuilder, addSearchParams, addPageNavigationElements }: InfoCardPageSettings) {
 
+    const { getSearchResults } = useApi();
     const { token } = useAuth();
 
     const gameSearchText = useRef<HTMLInputElement | null>(null);
@@ -67,34 +69,7 @@ export function InfoTable<T extends RowObject>({auth, endpoint, httpMethod, sear
             return;
         }
 
-        const endpointFetch = auth ? fetchURLWithAuth : fetchURLWithNoAuth;
-        const url = new URL( buildUrl(endpoint) );
-        
-        for(const key of searchParams.keys()) {
-            url.searchParams.set(key, searchParams.get(key));
-        }
-
-        // for now assume endpoint already has the correct format before adding, this should probably get fixed later
-        const res = await endpointFetch(url.toString(), httpMethod || HttpMethod.GET);
-
-        let data: Promise<any> = null;
-        try {
-            data = await res.json();
-        } catch {
-            data = null;
-        }
-
-        if (!res.ok) {
-            const msg = extractMessage(data, "Failed to load data.");
-
-            setErrorMessage(msg);
-            setSearchResults(null);
-            setLoading(false);
-            return;
-        }
-
-        const results = data as SearchResults<T>;
-
+        const results: SearchResults<T> = await getSearchResults(endpoint, httpMethod, auth, searchParams);
         setSearchResults(results);
         setLoading(false);
     };
@@ -170,7 +145,8 @@ export function InfoTable<T extends RowObject>({auth, endpoint, httpMethod, sear
                     </select>
                     
                 </div>
-                {addPageNavigationElements && addPageNavigationElements(searchParams, onSearchClickHandler)}
+                {addPageNavigationElements && addPageNavigationElements(searchParams, 
+                    (resetPage?: boolean) => updateSearchParams(resetPage ? 1 : page, pageSize)  )}
             </form>
         </div>
         <div className="info-card-table">

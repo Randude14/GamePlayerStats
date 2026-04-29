@@ -14,15 +14,15 @@ function emptyBody(body: string): boolean {
 const backendUrl = import.meta.env.VITE_BACKEND_URL || '/api';
 
 function buildUrl(apiCall: string): URL {
-    return new URL(`${backendUrl}/${apiCall}`);
+    return new URL(`${backendUrl}${apiCall}`);
 }
 
 async function fetchWithNoAuth(apiCall: string, method: typeof HttpMethod[keyof typeof HttpMethod], body: string=''): Promise<Response> {
-    return fetchURLWithNoAuth(`${backendUrl}/${apiCall}`, method, body);
+    return fetchURLWithNoAuth(`${backendUrl}${apiCall}`, method, body);
 }
 
 async function fetchWithAuth(apiCall: string, method: typeof HttpMethod[keyof typeof HttpMethod], body: string=''): Promise<Response> {
-    return fetchURLWithAuth(`${backendUrl}/${apiCall}`, method, body);
+    return fetchURLWithAuth(`${backendUrl}${apiCall}`, method, body);
 }
 
 async function fetchURLWithNoAuth(url: string, method: typeof HttpMethod[keyof typeof HttpMethod], body: string=''): Promise<Response> {
