@@ -44,8 +44,6 @@ class GameService {
             throw new AppError('title and/or release not provided.', 400);
         }
 
-        console.log();
-
         if(external_id && external_source) {
             const gameCheck = await this.knex(Table.GAME_TABLE)
                         .where({

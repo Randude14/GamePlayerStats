@@ -8,6 +8,7 @@ export interface Player {
 
 export interface Game {
   id: number;
+  external_id: number;
   title: string;
   developers: string[];
   publishers: string[];

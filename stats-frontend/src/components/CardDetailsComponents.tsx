@@ -1,0 +1,62 @@
+import { useAuth } from "../context/useAuth"
+import { getFirstObject } from "../util/Helpers";
+import type { Game } from "../util/Models";
+import { HighlighLabelTag } from "./HighlightLabelTag";
+import { ImportButton } from "./ImportButton";
+import { PlayerStatEditButton } from "./PlayerStatEditButton";
+import type { ReactElement } from "react";
+import { DetailsType, ViewGameDetailsButton } from "./ViewGameDetailsButton";
+
+interface GameDetailsProps {
+    game: Game,
+    fullDetails: boolean,
+    highlightedText?: string,
+    onImport?: () => void
+}
+
+const buildLabelArray = (prefix: string, labels: string[]): ReactElement => {
+
+    if(labels && labels.length > 0) {
+        return <div><label>{prefix}
+        {
+            labels.join(', ')
+        }
+        </label></div>
+    }
+    return <></>
+}
+
+const FullDetailsInfo = ( {game} : {game: Game} ) =>{
+    return <>
+        {game.game_type && <div><label>{ game.game_type }</label></div>}
+        { buildLabelArray('Game Modes: ', game.game_modes) }
+        { buildLabelArray('Platforms: ', game.platforms) }
+        { buildLabelArray('Player Perspectives: ', game.player_perspectives) }
+        { buildLabelArray('Themes: ', game.themes) }
+        { buildLabelArray('Genre: ', game.genres) }
+    </>
+}
+
+export function GameCardDetails( { game, fullDetails, highlightedText, onImport } : GameDetailsProps ) {
+
+    const { token } = useAuth();
+    const isLoggedIn: boolean = !!token;
+
+    return <div className="info-card-fields">
+        { !fullDetails && <ViewGameDetailsButton game={game} detailsType={DetailsType.Image} /> }
+        { fullDetails && <div><img src={game.cover_url} className="info-card-image" /></div> }
+        <div><HighlighLabelTag className="" text={game.title} highlightedText={highlightedText}/></div>
+        <div><label>{ getFirstObject(game.developers) }</label></div>
+        <div><label>{ getFirstObject(game.publishers) }</label></div>
+        <div><label>{ game.release ? new Date(game.release).toLocaleDateString() : 'N/A' }</label></div>
+
+        { fullDetails && <FullDetailsInfo game={game} /> }
+
+        {/* Only show this button on the info card page */}
+        { !fullDetails && <ViewGameDetailsButton game={game} detailsType={DetailsType.Button} /> }
+        <div><ImportButton game_external_id={game.external_id} isImported={game.isImported} canImport={game.canImport} onImport={onImport} /></div>
+        {game.isImported && <PlayerStatEditButton game={game} disabled={!isLoggedIn} buttonLabel="Add To Profile" />}
+
+    </div>
+
+}

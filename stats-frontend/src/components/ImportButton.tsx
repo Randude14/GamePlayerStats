@@ -19,7 +19,7 @@ export function ImportButton( { game_external_id, isImported, canImport, onImpor
     }
 
     if(isImported) {
-        return <button disabled={true}>Game Imported</button>
+        return <></>
     }
 
     if(canImport) {
