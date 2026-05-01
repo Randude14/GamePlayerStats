@@ -1,10 +1,10 @@
 const auth = require('../middleware/auth')
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const config = require('config');
 const AppError = require('../util/AppError');
 const extractExistingData = require('../util/extractExistingData');
 const {Table} = require('../util/tables');
+const jwtSecret = String(process.env.JWT_SECRET);
 
 class PlayerService {
 
@@ -64,7 +64,7 @@ class PlayerService {
 
         // return secret token to player
         const token = jwt.sign(payload, 
-            config.get('jwtSecret'), 
+            jwtSecret, 
             { expiresIn: 360000 }
         );
 
@@ -93,7 +93,7 @@ class PlayerService {
         }
 
         const token = jwt.sign(payload, 
-            config.get('jwtSecret'), 
+            jwtSecret, 
             { expiresIn: 360000 }
         );
 
@@ -152,7 +152,7 @@ class PlayerService {
         }
 
         const token = jwt.sign(payload, 
-            config.get('jwtSecret'), 
+            jwtSecret, 
             { expiresIn: 360000 }
         );
 

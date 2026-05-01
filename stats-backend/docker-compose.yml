@@ -13,6 +13,7 @@ services:
       - DB_PASSWORD=statspassword1234
       - DB_NAME=player_stats
       - DB_PORT=3306
+      - JWT_SECRET=thIsiSmYSeCreTToken
     depends_on:
       - db
 

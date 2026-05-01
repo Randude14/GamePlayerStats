@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const config = require('config');
+const jwtSecret = String(process.env.JWT_SECRET);
 
 function auth(req, res, next) {
     // Get token from header
@@ -12,7 +12,7 @@ function auth(req, res, next) {
 
     // Verify token
     try {
-        const decoded = jwt.verify(token, config.get('jwtSecret'));
+        const decoded = jwt.verify(token, jwtSecret);
 
         req.player = decoded.player;
 

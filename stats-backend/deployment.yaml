@@ -84,6 +84,8 @@ spec:
               value: 'h0zgudvlf56ii2q4wpusij14t7dh3j'
             - name: TWITCH_CLIENT_SECRET
               value: 'qs9jbcscqxmafrjl03vimllcnjljbb'
+            - name: JWT_SECRET
+              value: 'thIsiSmYSeCreTToken'
 
 ---
 # -------------------

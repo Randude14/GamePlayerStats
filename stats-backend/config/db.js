@@ -3,11 +3,7 @@ const mysql = require('mysql2/promise');
 
 async function connecToDB(retries = 10, delay = 1000) {
 
-    console.log(process.env.DB_PASSWORD);
-    console.log(process.env.DB_NAME);
-    console.log(process.env.DB_USER);
-
-    const pool = mysql.createPool({
+    const pool = await mysql.createPool({
         host: process.env.DB_HOST || 'localhost',
         user: process.env.DB_USER || 'root',
         password: process.env.DB_PASSWORD || '',
