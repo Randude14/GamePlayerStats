@@ -1,5 +1,5 @@
 import { ApiRoutes } from "../util/ApiRoutes";
-import type { PlayerDashboard, RowObject, SearchResults } from "../util/Models";
+import type { Game, PlayerDashboard, PlayerStat, RowObject, SearchResults } from "../util/Models";
 import { buildUrl, fetchURLWithAuth, fetchURLWithNoAuth, fetchWithAuth, fetchWithNoAuth, HttpMethod } from "../util/serverRequests";
 
 export class ApiServiceError extends Error {
@@ -146,4 +146,51 @@ export async function importExternalGameRequest(game_external_id: number): Promi
     }
 
     return true;
+}
+
+export async function getGameByIdRequest(gameId: number): Promise<Game> {
+    const res = await fetchWithAuth( formatRoute(ApiRoutes.GET_GAME_BY_ID, gameId), HttpMethod.GET );
+    const data = await res.json();
+
+    if(!res.ok) {
+        throw new ApiServiceError(data, 'Could not find game.');
+    }
+
+    return data as Game;
+}
+
+export async function updatePlayerStatRequest(stat_id: number, date_purchased: string, hours_played: number): Promise<boolean> {
+    const body: string = JSON.stringify({ date_purchased, hours_played });
+    const res = await fetchWithAuth( formatRoute(ApiRoutes.UPDATE_PLAYER_STAT, stat_id), HttpMethod.PATCH, body );
+    const data = await res.json();
+
+    if(!res.ok) {
+        throw new ApiServiceError(data, 'Failed to update player stat.');
+    }
+
+    return true;
+}
+
+export async function addPlayerStatRequest(game_id: number, date_purchased: string, hours_played: number): Promise<boolean> {
+    const body: string = JSON.stringify({ game_id, date_purchased, hours_played });
+    const res = await fetchWithAuth( ApiRoutes.ADD_PLAYER_STAT, HttpMethod.POST, body );
+    const data = await res.json();
+
+    if(!res.ok) {
+        throw new ApiServiceError(data, 'Failed to add player stat.');
+    }
+
+    return true;
+}
+
+export async function getPlayerStatRequest(player_id: number, game_id: number, silentFailure?: boolean): Promise<PlayerStat> {
+    const res = await fetchWithAuth( formatRoute(ApiRoutes.GET_STAT_FROM_PLAYER_AND_GAME, player_id, game_id), HttpMethod.GET );
+    const data = await res.json();
+
+    // Silent failure flag
+    if(!res.ok && !silentFailure) {
+        throw new ApiServiceError(data, 'Failed to find player stat.');
+    }
+
+    return data as PlayerStat;
 }

@@ -29,7 +29,7 @@ export interface PlayerStat {
   id: number;
   player_id: number;
   game_id: number;
-  hours_played: string;
+  hours_played: 0;
   date_purchased: string;
   created_at: string;
   title?: string;

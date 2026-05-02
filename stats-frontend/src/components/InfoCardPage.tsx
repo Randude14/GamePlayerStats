@@ -21,7 +21,7 @@ interface InfoCardPageSettings {
     endpoint: string, // API endpoint to get rows from
     httpMethod?: string, // HTTP method to use, GET if not passed
     searchInputPlaceholder: string,
-    infoCardBuilder: (data: RowObject) => ReactElement, // Function passed to build the info cards
+    infoCardBuilder: (data: RowObject, refreshData: () => void) => ReactElement, // Function passed to build the info cards
     addSearchParams?: () => any;
     addPageNavigationElements?: (params: URLSearchParams, refreshPage: (resetPage?: boolean) => void) => ReactElement;
 }
@@ -122,6 +122,7 @@ export function InfoTable<T extends RowObject>({auth, endpoint, httpMethod, sear
     const onSearchClickHandler = () => updateSearchParams(page, pageSize);
     const onPrevClickHandler = () => updateSearchParams(page-1, pageSize);
     const onNextClickHandler = () => updateSearchParams(page+1, pageSize);
+    const refreshData = () => fetchRows();
 
     const showResults: boolean = !!endpoint && !!searchResults;
 
@@ -153,7 +154,7 @@ export function InfoTable<T extends RowObject>({auth, endpoint, httpMethod, sear
             {showResults && searchResults.results.map((row, index) => {
 
                 return <div className="info-card" key={index}>
-                    {infoCardBuilder(row) || <>Null</>}
+                    {infoCardBuilder(row, refreshData) || <>Null</>}
                 </div>;
             })}
             {!searchResults.results?.length && <strong>No search results found.</strong>}

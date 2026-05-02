@@ -100,7 +100,7 @@ class PlayerStatService {
             return query;
         };
 
-        const statsResults = await applyFilters(
+        let statsResults = await applyFilters(
             this.knex(`${Table.PLAYER_STAT_TABLE} as ps`)
                 .join(`${Table.GAME_TABLE} as g`, 'ps.game_id', 'g.id')
         )
@@ -123,6 +123,18 @@ class PlayerStatService {
                 .join(`${Table.GAME_TABLE} as g`, 'ps.game_id', 'g.id')
         )
         .count('ps.id as total').first();
+
+        const player = await this.knex(`${Table.PLAYER_TABLE} as p`)
+                .select('p.username as username')
+                .where({id: player_id}).first();
+
+        // Add username to stats
+        statsResults = statsResults.map(stat => {
+            return {
+                ...stat,
+                username: player.username
+            }
+        })
 
         const totalResults = Number(totalRows.total);
         const totalPages = Math.ceil(totalResults / pageSize);

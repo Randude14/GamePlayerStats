@@ -4,7 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import type { Game } from "../util/Models";
 import { ApiRoutes } from "../util/ApiRoutes";
 import { HttpMethod } from "../util/serverRequests";
-import { GameCardDetails } from "../components/CardDetailsComponents";
+import { GameCardDetails } from "../components/cards/GameCardDetailsComponent";
 
 const INTERNAL_CHECKBOX_ID: string = "internal-checkbox";
 const INTERNAL_PARAM: string = "internalSearch"

@@ -7,8 +7,8 @@ import {
 import { useToast } from "./ToastContext";
 import { useAuth } from "./useAuth";
 import {  HttpMethod } from "../util/serverRequests";
-import type { PlayerDashboard, RowObject, SearchResults } from "../util/Models";
-import { authPlayerRequest, createPlayerRequest, getPlayerDashboardRequest, importExternalGameRequest, searchResultsRequest, updatePlayerFieldRequest, updatePlayerPasswordRequest } from "./apiService";
+import type { Game, PlayerDashboard, PlayerStat, RowObject, SearchResults } from "../util/Models";
+import { addPlayerStatRequest, authPlayerRequest, createPlayerRequest, getGameByIdRequest, getPlayerDashboardRequest, getPlayerStatRequest, importExternalGameRequest, searchResultsRequest, updatePlayerFieldRequest, updatePlayerPasswordRequest, updatePlayerStatRequest } from "./apiService";
 import { ApiRoutes } from "../util/ApiRoutes";
 
 type ApiContextValue = {
@@ -51,6 +51,28 @@ type ApiContextValue = {
 	importExternalGame: (
 		game_external_id: number
 	) => Promise<boolean>
+
+	getGameById: (
+		gameId: number
+	) => Promise<Game>
+
+	addPlayerStat: (
+		game_id: number,
+		date_purchased: string,
+		hours_played: number
+	) => Promise<boolean>
+
+	updatePlayerStat: (
+		stat_id: number,
+		date_purchased: string,
+		hours_played: number
+	) => Promise<boolean>
+
+	getPlayerStat: (
+		player_id: number,
+		game_id: number, 
+		silenceFailure?: boolean
+	) => Promise<PlayerStat>
 };
 
 const ApiContext = createContext<ApiContextValue | null>(null);
@@ -180,6 +202,36 @@ export function ApiProvider({ children }: ApiProviderProps) {
 		}
 	);	
 
+	const getGameById = async (
+		gameId: number
+	) : Promise<Game> => await runApi( () => getGameByIdRequest(gameId));
+
+	const addPlayerStat = async (
+		game_id: number,
+		date_purchased: string,
+		hours_played: number
+ 	) : Promise<boolean> => await runApi( () => addPlayerStatRequest(game_id, date_purchased, hours_played),
+		{
+			successMessage: "Stat added to profile."
+		}
+	);	
+
+	const getPlayerStat = async (
+		player_id: number,
+		game_id: number, 
+		silenceFailure?: boolean
+ 	) : Promise<PlayerStat> => await runApi( () => getPlayerStatRequest(player_id, game_id, silenceFailure));	
+
+	const updatePlayerStat = async (
+		stat_id: number,
+		date_purchased: string,
+		hours_played: number
+ 	) : Promise<boolean> => await runApi( () => updatePlayerStatRequest(stat_id, date_purchased, hours_played),
+		{
+			successMessage: "Stat updated to profile."
+		}
+	);	
+
 	const api: ApiContextValue = {
 		createPlayer,
 		authPlayer,
@@ -188,7 +240,11 @@ export function ApiProvider({ children }: ApiProviderProps) {
 		updatePlayerName,
 		updatePlayerUsername,
 		updatePlayerPassword,
-		importExternalGame
+		importExternalGame,
+		getGameById,
+		addPlayerStat,
+		updatePlayerStat,
+		getPlayerStat
 	};
 
 	return (

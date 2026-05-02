@@ -11,21 +11,19 @@ export interface EditPopupSettings {
 
 const BuildPopup = (settings: EditPopupSettings, closeHandler: () => void) => {
     if(settings.elementBuilder && settings.clickCallback) {
-        return <div className="edit-popup-background" onClick={closeHandler}> 
-            <form className="edit-popup-window" onSubmit={(e) => {
-                    e.preventDefault(); 
-                    
-                    if(settings.clickCallback()) {
-                        closeHandler();
-                    }
-                }}>
+        return <div className="edit-popup-background"> 
+            <div className="edit-popup-window">
 
                 {settings.elementBuilder()}
                 {<div className="edit-popup-actions">
-                    <button type="submit">{settings.submitLabel}</button>
+                    <button onClick={() => {
+                        if(settings.clickCallback()) {
+                            closeHandler();
+                        }
+                    }}>{settings.submitLabel}</button>
                     <button onClick={closeHandler}>Cancel</button>
                 </div>}
-            </form>
+            </div>
         </div>
     }
     return <></>

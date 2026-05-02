@@ -1,11 +1,11 @@
-import { useAuth } from "../context/useAuth"
-import { getFirstObject } from "../util/Helpers";
-import type { Game } from "../util/Models";
-import { HighlighLabelTag } from "./HighlightLabelTag";
-import { ImportButton } from "./ImportButton";
-import { PlayerStatEditButton } from "./PlayerStatEditButton";
+import { useAuth } from "../../context/useAuth"
+import { getFirstObject } from "../../util/Helpers";
+import type { Game } from "../../util/Models";
+import { HighlighLabelTag } from "../HighlightLabelTag";
+import { ImportButton } from "../buttons/ImportButton";
+import { PlayerStatEditButton } from "../buttons/PlayerStatEditButton";
 import type { ReactElement } from "react";
-import { DetailsType, ViewGameDetailsButton } from "./ViewGameDetailsButton";
+import { DetailsType, ViewGameDetailsButton } from "../buttons/ViewGameDetailsButton";
 
 interface GameDetailsProps {
     game: Game,
@@ -39,9 +39,6 @@ const FullDetailsInfo = ( {game} : {game: Game} ) =>{
 
 export function GameCardDetails( { game, fullDetails, highlightedText, onImport } : GameDetailsProps ) {
 
-    const { token } = useAuth();
-    const isLoggedIn: boolean = !!token;
-
     return <div className="info-card-fields">
         { !fullDetails && <ViewGameDetailsButton game={game} detailsType={DetailsType.Image} /> }
         { fullDetails && <div><img src={game.cover_url} className="info-card-image" /></div> }
@@ -52,11 +49,11 @@ export function GameCardDetails( { game, fullDetails, highlightedText, onImport 
 
         { fullDetails && <FullDetailsInfo game={game} /> }
 
-        {/* Only show this button on the info card page */}
+        {/* Only show these buttons on the info card page */}
         { !fullDetails && <ViewGameDetailsButton game={game} detailsType={DetailsType.Button} /> }
-        <div><ImportButton game_external_id={game.external_id} isImported={game.isImported} canImport={game.canImport} onImport={onImport} /></div>
-        {game.isImported && <PlayerStatEditButton game={game} disabled={!isLoggedIn} buttonLabel="Add To Profile" />}
+        { !fullDetails && <div><ImportButton game_external_id={game.external_id} isImported={game.isImported} canImport={game.canImport} onImport={onImport} /></div> }
+
+        { !fullDetails && game.isImported && <PlayerStatEditButton game={game} buttonLabel="Add To Profile" /> }
 
     </div>
-
 }

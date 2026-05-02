@@ -1,11 +1,11 @@
 import { type EditPopupSettings } from "../context/EditPopupContext";
 import { getFirstObject, isValidDate } from "../util/Helpers";
 import type { Game, PlayerStat } from "../util/Models";
-import { fetchWithAuth, HttpMethod } from "../util/serverRequests";
 import './player-stat-edit.css'
 
 interface PlayerStatEditSettings {
-    game: Game;
+    stat?: PlayerStat,
+    game: Game,
     submitCallback: (statId: number, gameId: number, datePurchased: string, hoursPlayed: number) => void;
     userId: number;
 }
@@ -27,22 +27,12 @@ const BuildPlayerStatPopup = (game: Game, datePurchased: string, hoursPlayed: nu
 
 export async function PlayerStatPopupGenerator(settings : PlayerStatEditSettings): Promise<EditPopupSettings> {
 
-    let datePurchased: string = null;
-    let hoursPlayed: number = null;
-    let isImported: boolean = false;
-    let statId: number = -1;
-    const res = await fetchWithAuth(`player_stats/search/${settings.userId}/game/${settings.game.id}`, HttpMethod.GET);
+    let datePurchased: string = settings.stat?.date_purchased?.replaceAll('/', '-') ?? '1999-10-28';
+    const hoursPlayed: number = settings.stat?.hours_played ?? 0;
 
-    if(res.ok) {
-        const data: PlayerStat = await res.json();
-        datePurchased = data.date_purchased.replaceAll('/', '-');
-        const Tindex = datePurchased.indexOf('T');
-        if(Tindex >= 0) {
-            datePurchased = datePurchased.substring(0, Tindex);
-        }
-        hoursPlayed = Number(data.hours_played);
-        isImported = true;
-        statId = data.id;
+    const Tindex = datePurchased.indexOf('T');
+    if(Tindex >= 0) {
+        datePurchased = datePurchased.substring(0, Tindex);
     }
 
     const elementBuilder = () => {
@@ -64,14 +54,14 @@ export async function PlayerStatPopupGenerator(settings : PlayerStatEditSettings
                 return false;
             }
 
-            settings.submitCallback(statId, settings.game.id, datePurchasedInput.value, Number(hoursPlayedInput.value)); 
+            settings.submitCallback(settings.stat?.id, settings.game.id, datePurchasedInput.value, Number(hoursPlayedInput.value)); 
         }
 
         return true;
     }
 
     const popupSettings: EditPopupSettings = {
-        submitLabel: isImported ? 'Update' : 'Addd',
+        submitLabel: settings.stat ? 'Update' : 'Add',
         elementBuilder,
         clickCallback
     }
