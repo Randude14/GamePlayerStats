@@ -2,8 +2,10 @@ import { useEffect, useState } from "react"
 import { useApi } from "../../context/ApiContext"
 import { useEditPopup, type EditPopupSettings } from "../../context/EditPopupContext"
 import { blankImage } from "../../util/Helpers"
-import type { Game } from "../../util/Models"
+import type { Game, PlayerStat } from "../../util/Models"
 import { GameCardDetails } from "../cards/GameCardDetailsComponent"
+import { PlayerStatPopupGenerator } from "../PlayerStatPopupGenerator"
+import { useAuth } from "../../context/useAuth"
 
 const DetailsType = {
     Image: 'Image',
@@ -12,11 +14,15 @@ const DetailsType = {
 
 interface GameDetailsProps {
     game: Game,
-    detailsType: string
+    detailsType: string,
+    userAdded?: boolean,
+    successCallback?: () => void
 }
 
-function ViewGameDetailsButton( {game, detailsType } : GameDetailsProps ) {
+function ViewGameDetailsButton( {game, detailsType, successCallback, userAdded } : GameDetailsProps ) {
     const { showPopup } = useEditPopup();
+    const { importExternalGame, getPlayerStat, updatePlayerStat, addPlayerStat } = useApi();
+    const { user } = useAuth();
 
     if(!game) {
         return <></>
@@ -29,20 +35,53 @@ function ViewGameDetailsButton( {game, detailsType } : GameDetailsProps ) {
     }
 
     const clickCallback = () => {
-        if(game.isImported) {
-            
-        }
-        else {
 
+        const clickAction = async () => {
+            if(game.isImported) {
+                const stat: PlayerStat = await getPlayerStat(user.id, game.id, true);
+
+                const playerStatSaveHandler = async (statId: number, gameId: number, date_purchased: string, hours_played: number) => {
+                    if(statId > 0) {
+                        await updatePlayerStat(statId, date_purchased, hours_played);
+                    }
+                    else {
+                        await addPlayerStat(gameId, date_purchased, hours_played);
+                    }
+
+                    if(successCallback) {
+                        successCallback();
+                    }
+                }
+
+                const popupSettings: EditPopupSettings = await PlayerStatPopupGenerator({
+                    stat,
+                    game,
+                    userId: user.id,
+                    submitCallback: playerStatSaveHandler
+                });
+
+                showPopup(popupSettings);
+            }
+            else {
+                await importExternalGame(game.external_id);
+                if(successCallback) {
+                    successCallback();
+                }
+            }
         }
 
+        clickAction();
         return true;
     }
+
+    const submitLabel: string = game?.isImported ? 
+            (userAdded ? 'Update Game Stat' : 'Add To Profile')
+             : 'Import Game';
 
     const popupSettings: EditPopupSettings = {
         elementBuilder,
         clickCallback,
-        submitLabel: 'Add To Profile'
+        submitLabel
     }
 
     const onViewButtonHandler = () => {
@@ -64,10 +103,12 @@ function ViewGameDetailsButton( {game, detailsType } : GameDetailsProps ) {
 
 interface GameDetailsAsyncProps {
     gameId: number,
-    detailsType: string
+    detailsType: string,
+    userAdded?: boolean,
+    successCallback?: () => void
 }
 
-function ViewGameDetailsAsyncButton( {gameId, detailsType } : GameDetailsAsyncProps) {
+function ViewGameDetailsAsyncButton( {gameId, detailsType, userAdded, successCallback } : GameDetailsAsyncProps) {
     const { getGameById } = useApi();
     const [game, setGame] = useState(null);
 
@@ -88,7 +129,7 @@ function ViewGameDetailsAsyncButton( {gameId, detailsType } : GameDetailsAsyncPr
         return <>Loading...</>
     }
 
-    return <ViewGameDetailsButton game={game} detailsType={detailsType} />
+    return <ViewGameDetailsButton game={game} detailsType={detailsType} successCallback={successCallback} userAdded={userAdded} />
 }
 
 export { DetailsType, ViewGameDetailsAsyncButton, ViewGameDetailsButton };

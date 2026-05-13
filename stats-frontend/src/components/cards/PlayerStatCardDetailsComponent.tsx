@@ -65,7 +65,7 @@ export function PlayerStatCardDetails( { playerStat, highlightUsername, highligh
         <div><label>{`Hours Played: ${playerStat.hours_played}`}</label></div>
         <div><label>{ `Date Purchased: ${datePurchased}` }</label></div>
         <div><label>{ `Game Release: ${gameRelease}` }</label></div>
-        <ViewGameDetailsAsyncButton gameId={playerStat.game_id} detailsType={DetailsType.Button} />
+        <ViewGameDetailsAsyncButton gameId={playerStat.game_id} detailsType={DetailsType.Button} userAdded={true} successCallback={refreshData} />
         {isCurrentUser && <PlayerStatEditButton game={game} buttonLabel="Update Stat" successCallback={refreshData} />}
 
     </div>

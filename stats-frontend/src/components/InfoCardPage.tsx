@@ -57,6 +57,7 @@ export function InfoTable<T extends RowObject>({auth, endpoint, httpMethod, sear
     const fetchRows = async () => {
         setLoading(true);
         setErrorMessage(null);
+        setSearchResults(null);
 
         if(!endpoint) {
             return;
@@ -149,6 +150,9 @@ export function InfoTable<T extends RowObject>({auth, endpoint, httpMethod, sear
                 {addPageNavigationElements && addPageNavigationElements(searchParams, 
                     (resetPage?: boolean) => updateSearchParams(resetPage ? 1 : page, pageSize)  )}
             </form>
+        </div>
+        <div className="info-card-search-fields">
+            {buildPageButtons(searchResults,  onPrevClickHandler, onNextClickHandler)}
         </div>
         <div className="info-card-table">
             {showResults && searchResults.results.map((row, index) => {

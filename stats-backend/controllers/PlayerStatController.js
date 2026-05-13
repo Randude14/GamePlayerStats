@@ -98,8 +98,10 @@ class PlayerStatController {
         const {game_id} = req.body;
         
         // Ensure player and games exist
-        await this.playerService.getById(player_id);
-        await this.gameService.getById(game_id);
+        await Promise.all([
+            this.playerService.getById(player_id),
+            this.gameService.getById(game_id)
+        ]);
 
         const playerStat = await this.playerStatService.createPlayerStat(player_id, req.body);
         return res.status(201).json(playerStat);

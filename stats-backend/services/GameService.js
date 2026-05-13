@@ -20,6 +20,8 @@ class GameService {
             throw new AppError('Game not found with id ' + id, 404);
         }
 
+        game.isImported = true;
+
         return game;
     }
 
