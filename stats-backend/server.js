@@ -56,7 +56,7 @@ const app = express();
         const externalGameAPIService = new ExternalGameAPIService(knex);
         const playerService = new PlayerService(knex);
         const gameService = new GameService(knex);
-        const playerStatService = new PlayerStatService(knex);
+        const playerStatService = new PlayerStatService(knex, gameService);
 
         // Create controllers and register their routes
         const playerController = new PlayerController(playerService);

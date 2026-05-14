@@ -15,14 +15,13 @@ const DetailsType = {
 interface GameDetailsProps {
     game: Game,
     detailsType: string,
-    userAdded?: boolean,
     successCallback?: () => void
 }
 
-function ViewGameDetailsButton( {game, detailsType, successCallback, userAdded } : GameDetailsProps ) {
+function ViewGameDetailsButton( {game, detailsType, successCallback } : GameDetailsProps ) {
     const { showPopup } = useEditPopup();
     const { importExternalGame, getPlayerStat, updatePlayerStat, addPlayerStat } = useApi();
-    const { user } = useAuth();
+    const { user, doesPlayerHaveStatFor } = useAuth();
 
     if(!game) {
         return <></>
@@ -74,8 +73,9 @@ function ViewGameDetailsButton( {game, detailsType, successCallback, userAdded }
         return true;
     }
 
+    const userHaveGame: boolean = doesPlayerHaveStatFor(game.id);
     const submitLabel: string = game?.isImported ? 
-            (userAdded ? 'Update Game Stat' : 'Add To Profile')
+            (userHaveGame ? 'Update Game Stat' : 'Add To Profile')
              : 'Import Game';
 
     const popupSettings: EditPopupSettings = {
@@ -104,11 +104,10 @@ function ViewGameDetailsButton( {game, detailsType, successCallback, userAdded }
 interface GameDetailsAsyncProps {
     gameId: number,
     detailsType: string,
-    userAdded?: boolean,
     successCallback?: () => void
 }
 
-function ViewGameDetailsAsyncButton( {gameId, detailsType, userAdded, successCallback } : GameDetailsAsyncProps) {
+function ViewGameDetailsAsyncButton( {gameId, detailsType, successCallback } : GameDetailsAsyncProps) {
     const { getGameById } = useApi();
     const [game, setGame] = useState(null);
 
@@ -129,7 +128,7 @@ function ViewGameDetailsAsyncButton( {gameId, detailsType, userAdded, successCal
         return <>Loading...</>
     }
 
-    return <ViewGameDetailsButton game={game} detailsType={detailsType} successCallback={successCallback} userAdded={userAdded} />
+    return <ViewGameDetailsButton game={game} detailsType={detailsType} successCallback={successCallback} />
 }
 
 export { DetailsType, ViewGameDetailsAsyncButton, ViewGameDetailsButton };

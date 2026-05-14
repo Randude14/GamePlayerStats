@@ -1,11 +1,9 @@
 import { useEffect, useRef, useState, type ReactElement } from "react"
 import { useAuth } from "../context/useAuth";
-import { fetchURLWithAuth, fetchURLWithNoAuth, buildUrl, HttpMethod } from "../util/serverRequests";
-import './InfoCardPage.css'
 import type { RowObject, SearchResults } from "../util/Models";
-import { extractMessage } from "../util/Helpers";
 import { useSearchParams } from "react-router-dom";
 import { useApi } from "../context/ApiContext";
+import './InfoCardPage.css'
 
 export type SearchParams = {
     query: string,

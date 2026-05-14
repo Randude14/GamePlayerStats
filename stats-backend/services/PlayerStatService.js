@@ -10,8 +10,9 @@ const PLAYER_STAT_FITLERS = {
 
 class PlayerStatService {
 
-    constructor(_knex) {
+    constructor(_knex, _gameService) {
         this.knex = _knex;
+        this.gameService = _gameService;
     }
 
     async getAllStats() {
@@ -19,7 +20,10 @@ class PlayerStatService {
         return rows;
     }
 
-    
+    async getAllPlayerStatsForMe(player_id) {
+        const rows = await this.knex(Table.PLAYER_STAT_TABLE).select('*').where({ player_id });
+        return rows;
+    }
 
     async searchAllStatsFor(search, page, pageSize, filter) {
         const offset = (page - 1) * pageSize;
@@ -194,6 +198,12 @@ class PlayerStatService {
     async createPlayerStat(player_id, data) {
         const {game_id, hours_played, date_purchased} = data;
 
+        const purchaseDateValid = await this.isDatePurchasedValid(game_id, date_purchased);
+
+        if(!purchaseDateValid) {
+            throw new AppError('Purchased date cannot fall before the game\'s release date ', 400);
+        }
+
         const playerStatCheck = await this.knex(Table.PLAYER_STAT_TABLE)
                                 .where({
                                     player_id,
@@ -216,10 +226,17 @@ class PlayerStatService {
     }
 
     async updatePlayerStat(id, data) {
+        const {game_id, hours_played, date_purchased} = data;
         const existingStat = await this.knex(Table.PLAYER_STAT_TABLE).where({ id }).first();
 
         if(!existingStat) {
             throw new AppError('Player stat does not exist.', 404);
+        }
+
+        const purchaseDateValid = await this.isDatePurchasedValid(game_id, date_purchased);
+
+        if(!purchaseDateValid) {
+            throw new AppError('Purchased date cannot fall before the game\'s release date ', 400);
         }
 
         // Only update existing fields
@@ -241,6 +258,22 @@ class PlayerStatService {
 
         await this.knex(Table.PLAYER_STAT_TABLE).where({ id }).delete();
         return playerStatCheck;
+    }
+
+
+    async isDatePurchasedValid(game_id, date_purchased) {
+        const game = await this.gameService.getById(game_id);
+
+        if (game.release && date_purchased) {
+            const releaseDate = new Date(game.release);
+            const purchasedDate = new Date(date_purchased);
+
+            if (releaseDate > purchasedDate) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
 }

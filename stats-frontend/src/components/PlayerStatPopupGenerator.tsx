@@ -27,9 +27,12 @@ const BuildPlayerStatPopup = (game: Game, datePurchased: string, hoursPlayed: nu
 
 export async function PlayerStatPopupGenerator(settings : PlayerStatEditSettings): Promise<EditPopupSettings> {
 
-    let datePurchased: string = settings.stat?.date_purchased?.replaceAll('/', '-') ?? '1999-10-28';
+    let datePurchased: string = settings.stat?.date_purchased?.replaceAll('/', '-') ?? settings.game?.release;
     const hoursPlayed: number = settings.stat?.hours_played ?? 0;
 
+    if(!datePurchased) {
+        datePurchased = new Date().toISOString();
+    }
     const Tindex = datePurchased.indexOf('T');
     if(Tindex >= 0) {
         datePurchased = datePurchased.substring(0, Tindex);

@@ -22,9 +22,11 @@ class PlayerStatController {
 
         app.get('/api/player_stats/search/:player_id/game/:game_id', this.catchAsyncRoute(this.getPlayerStatFor));
 
-        app.get('/api/player_stats/search/:player_id', this.catchAsyncRoute(this.getAllPlayerStatsFor));
+        app.get('/api/player_stats/search/:player_id', this.catchAsyncRoute(this.searchAllPlayerStatsFor));
 
-        app.get('/api/player_stats/me/search', auth, this.catchAsyncRoute(this.searchAllPlayerStatsFor));
+        app.get('/api/player_stats/me', auth, this.catchAsyncRoute(this.getAllPlayerStatsForMe));
+
+        app.get('/api/player_stats/me/search', auth, this.catchAsyncRoute(this.searchAllPlayerStatsForMe));
 
         app.get('/api/player_stats/dashboard/:player_id', this.catchAsyncRoute(this.captureDashboardInfo));
 
@@ -56,6 +58,12 @@ class PlayerStatController {
         return res.status(200).json({results: allStats});
     }
 
+    async getAllPlayerStatsForMe(req, res) {
+        const player_id = req.player.id;
+        const myStats = await this.playerStatService.getAllPlayerStatsForMe(player_id);
+        return res.status(200).json({results: myStats});
+    }
+
     async searchAllStatsFor(req, res) {
         const queryToSearch = req.query.query?.trim();
         const page = Number(req.query.page) || 1;
@@ -71,13 +79,13 @@ class PlayerStatController {
         return res.status(200).json(playerStats);
     } 
 
-    async getAllPlayerStatsFor(req, res) {
+    async searchAllPlayerStatsFor(req, res) {
         const player_id = req.params.player_id;
         const playerStatRows = await this.playerStatService.getAllStatsFor(player_id);
         return res.status(200).json({results: playerStatRows});
     }
 
-    async searchAllPlayerStatsFor(req, res) {
+    async searchAllPlayerStatsForMe(req, res) {
         const player_id = req.player.id;
         const gameTitleToSearch = req.query.query?.trim();
         const page = Number(req.query.page) || 1;

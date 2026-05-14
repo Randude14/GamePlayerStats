@@ -25,6 +25,7 @@ const ApiRoutes = {
     UPDATE_PLAYER_STAT: '/player_stats/{0}',
     GET_STAT_FROM_PLAYER_AND_GAME: '/player_stats/search/{0}/game/{1}',
     GET_STATS_FROM_PLAYER: '/player_stats/search/{0}',
+    GET_PLAYER_STATS_ME: '/player_stats/me',
     SEARCH_PLAYER_STATS_ME: '/player_stats/me/search',
     DELETE_PLAYER_STAT: '/player_stats/'
 }

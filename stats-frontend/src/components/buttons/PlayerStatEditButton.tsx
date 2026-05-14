@@ -12,7 +12,7 @@ interface PlayerStatEditProps {
 }
 
 export function PlayerStatEditButton({ game, disabled, buttonLabel, successCallback=null }: PlayerStatEditProps) {
-    const { user } = useAuth();
+    const { user, doesPlayerHaveStatFor, refreshPlayerStats } = useAuth();
     const { showPopup } = useEditPopup(); 
     const { addPlayerStat, updatePlayerStat, getPlayerStat } = useApi();
 
@@ -25,6 +25,8 @@ export function PlayerStatEditButton({ game, disabled, buttonLabel, successCallb
                                     await addPlayerStat(gameId, date_purchased, hours_played);
 
         if(status) {
+            refreshPlayerStats();
+
             if(successCallback) {
                 successCallback();
             }
@@ -33,7 +35,11 @@ export function PlayerStatEditButton({ game, disabled, buttonLabel, successCallb
 
     const addGameStatHandler = async () => {
 
-        const stat: PlayerStat = await getPlayerStat(user.id, game.id, true);
+        const stat: PlayerStat = (doesPlayerHaveStatFor(game?.id) 
+                                        ? 
+                                            await getPlayerStat(user.id, game.id, true) 
+                                        : 
+                                            null);
 
         const popupSettings: EditPopupSettings = await PlayerStatPopupGenerator({
             stat,

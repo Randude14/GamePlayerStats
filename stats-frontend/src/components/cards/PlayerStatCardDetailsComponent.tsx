@@ -41,7 +41,7 @@ export function PlayerStatCardDetails( { playerStat, highlightUsername, highligh
 
     const datePurchased: string = new Date(playerStat.date_purchased).toLocaleDateString();
     const gameRelease: string = new Date(playerStat.game_release).toLocaleDateString();
-    const isCurrentUser = (user) ? user.username === playerStat.username : false;
+    const isCurrentUser = (user) ? user.username === playerStat.username : false
 
     const game: Game = {
         id: playerStat.game_id,
@@ -65,7 +65,7 @@ export function PlayerStatCardDetails( { playerStat, highlightUsername, highligh
         <div><label>{`Hours Played: ${playerStat.hours_played}`}</label></div>
         <div><label>{ `Date Purchased: ${datePurchased}` }</label></div>
         <div><label>{ `Game Release: ${gameRelease}` }</label></div>
-        <ViewGameDetailsAsyncButton gameId={playerStat.game_id} detailsType={DetailsType.Button} userAdded={true} successCallback={refreshData} />
+        <ViewGameDetailsAsyncButton gameId={playerStat.game_id} detailsType={DetailsType.Button} successCallback={refreshData} />
         {isCurrentUser && <PlayerStatEditButton game={game} buttonLabel="Update Stat" successCallback={refreshData} />}
 
     </div>
