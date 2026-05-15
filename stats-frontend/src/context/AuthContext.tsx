@@ -60,6 +60,19 @@ export const AuthProvider = ({ children }) => {
             return false;
         }, [myStats]);
 
+    const getPlayerStatForGame = useCallback(
+        (game_id: number) => {
+            if(game_id) {
+                const results: PlayerStat[] = myStats.filter( stat => stat.game_id === game_id );
+
+                if(results.length === 1) {
+                    return results[0];
+                }
+            }
+
+            return null;
+    }, [myStats]);
+
     useEffect(() => {
         if(token) {
             refreshPlayer();
@@ -68,7 +81,7 @@ export const AuthProvider = ({ children }) => {
     }, [refreshPlayer, refreshPlayerStats, token])
 
     return (
-        <AuthContext.Provider value={{ user, token, login, logout, refreshPlayer, refreshPlayerStats, doesPlayerHaveStatFor }}>
+        <AuthContext.Provider value={{ user, token, login, logout, refreshPlayer, refreshPlayerStats, doesPlayerHaveStatFor, getPlayerStatForGame }}>
             {children}
         </AuthContext.Provider>
     );

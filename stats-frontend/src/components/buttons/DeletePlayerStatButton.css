@@ -1,0 +1,10 @@
+.delete-stat-button {
+    background-color: #4e4e4e;
+    border: 4px solid #4e4e4e;
+    color: #e50000;
+}
+
+.delete-stat-button:hover {
+    background-color: #6b6b6b;
+    border: 4px solid #6b6b6b;
+}

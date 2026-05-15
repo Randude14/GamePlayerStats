@@ -8,7 +8,7 @@ import { useToast } from "./ToastContext";
 import { useAuth } from "./useAuth";
 import {  HttpMethod } from "../util/serverRequests";
 import type { Game, PlayerDashboard, PlayerStat, RowObject, SearchResults } from "../util/Models";
-import { addPlayerStatRequest, authPlayerRequest, createPlayerRequest, getGameByIdRequest, getPlayerDashboardRequest, getPlayerStatRequest, importExternalGameRequest, searchResultsRequest, updatePlayerFieldRequest, updatePlayerPasswordRequest, updatePlayerStatRequest } from "./apiService";
+import { addPlayerStatRequest, authPlayerRequest, createPlayerRequest, deletePlayerStatRequest, getGameByIdRequest, getPlayerDashboardRequest, getPlayerStatRequest, importExternalGameRequest, searchResultsRequest, updatePlayerFieldRequest, updatePlayerPasswordRequest, updatePlayerStatRequest } from "./apiService";
 import { ApiRoutes } from "../util/ApiRoutes";
 
 type ApiContextValue = {
@@ -72,6 +72,10 @@ type ApiContextValue = {
 		player_id: number,
 		game_id: number, 
 		silenceFailure?: boolean
+	) => Promise<PlayerStat>
+
+	deletePlayerStat: (
+		stat_id: number
 	) => Promise<PlayerStat>
 };
 
@@ -232,6 +236,14 @@ export function ApiProvider({ children }: ApiProviderProps) {
 		}
 	);	
 
+	const deletePlayerStat = async (
+		stat_id: number
+	) : Promise<PlayerStat> => await runApi( () => deletePlayerStatRequest(stat_id),
+		{
+			successMessage: "Stat deleted from profile."
+		}
+	);
+
 	const api: ApiContextValue = {
 		createPlayer,
 		authPlayer,
@@ -244,7 +256,8 @@ export function ApiProvider({ children }: ApiProviderProps) {
 		getGameById,
 		addPlayerStat,
 		updatePlayerStat,
-		getPlayerStat
+		getPlayerStat,
+		deletePlayerStat
 	};
 
 	return (

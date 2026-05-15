@@ -7,7 +7,7 @@ interface ImportButtonProps {
     onImport?: () => void
 }
 
-export function ImportButton( { game_external_id, isImported, canImport, onImport } : ImportButtonProps ) {
+export function ImportGameButton( { game_external_id, isImported, canImport, onImport } : ImportButtonProps ) {
     const { importExternalGame } = useApi();
 
     const onClickHandler = async () => {

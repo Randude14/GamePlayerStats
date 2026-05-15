@@ -27,7 +27,7 @@ const ApiRoutes = {
     GET_STATS_FROM_PLAYER: '/player_stats/search/{0}',
     GET_PLAYER_STATS_ME: '/player_stats/me',
     SEARCH_PLAYER_STATS_ME: '/player_stats/me/search',
-    DELETE_PLAYER_STAT: '/player_stats/'
+    DELETE_PLAYER_STAT: '/player_stats/me/{0}'
 }
 
 export { ApiRoutes };

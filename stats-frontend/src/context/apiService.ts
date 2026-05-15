@@ -194,3 +194,14 @@ export async function getPlayerStatRequest(player_id: number, game_id: number, s
 
     return data as PlayerStat;
 }
+
+export async function deletePlayerStatRequest(stat_id: number): Promise<PlayerStat> {
+    const res = await fetchWithAuth( formatRoute(ApiRoutes.DELETE_PLAYER_STAT, stat_id), HttpMethod.DELETE );
+    const data = await res.json();
+
+    if(!res.ok) {
+        throw new ApiServiceError(data, 'Failed to delete player stat.');
+    }
+
+    return data as PlayerStat;
+}

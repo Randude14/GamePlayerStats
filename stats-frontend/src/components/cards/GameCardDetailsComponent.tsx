@@ -1,11 +1,12 @@
 import { getFirstObject } from "../../util/Helpers";
 import type { Game } from "../../util/Models";
 import { HighlighLabelTag } from "../HighlightLabelTag";
-import { ImportButton } from "../buttons/ImportButton";
+import { ImportGameButton } from "../buttons/ImportGameButton";
 import { PlayerStatEditButton } from "../buttons/PlayerStatEditButton";
 import type { ReactElement } from "react";
 import { DetailsType, ViewGameDetailsButton } from "../buttons/ViewGameDetailsButton";
 import { useAuth } from "../../context/useAuth";
+import { DeletePlayerStatButton } from "../buttons/DeletePlayerStatButton";
 
 interface GameDetailsProps {
     game: Game,
@@ -54,9 +55,10 @@ export function GameCardDetails( { game, fullDetails, highlightedText, onImport 
 
         {/* Only show these buttons on the info card page */}
         { !fullDetails && <ViewGameDetailsButton game={game} detailsType={DetailsType.Button} /> }
-        { !fullDetails && <div><ImportButton game_external_id={game.external_id} isImported={game.isImported} canImport={game.canImport} onImport={onImport} /></div> }
+        { !fullDetails && <div><ImportGameButton game_external_id={game.external_id} isImported={game.isImported} canImport={game.canImport} onImport={onImport} /></div> }
 
         { !fullDetails && game.isImported && <PlayerStatEditButton game={game} buttonLabel={userHaveGame ? "Update To Profile" : "Add To Profile"} successCallback={onImport} /> }
+        { userHaveGame && <DeletePlayerStatButton game_id={game.id} successCallback={onImport} /> }
 
     </div>
 }

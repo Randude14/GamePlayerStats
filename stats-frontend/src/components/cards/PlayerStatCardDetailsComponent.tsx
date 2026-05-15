@@ -3,6 +3,7 @@ import { HighlighLabelTag } from "../HighlightLabelTag";
 import { DetailsType, ViewGameDetailsAsyncButton } from "../buttons/ViewGameDetailsButton";
 import type { Game, RowObject } from "../../util/Models";
 import { PlayerStatEditButton } from "../buttons/PlayerStatEditButton";
+import { DeletePlayerStatButton } from "../buttons/DeletePlayerStatButton";
 
 interface StatIdLabelProps {
     condition: boolean; 
@@ -16,6 +17,7 @@ const StatIdLabel = ( { condition, className, text, highlightedText } : StatIdLa
 }
 
 export interface PlayerStatRow extends RowObject {
+    id: number,
     player_id: number,
     game_id: number,
     username: string,
@@ -67,6 +69,7 @@ export function PlayerStatCardDetails( { playerStat, highlightUsername, highligh
         <div><label>{ `Game Release: ${gameRelease}` }</label></div>
         <ViewGameDetailsAsyncButton gameId={playerStat.game_id} detailsType={DetailsType.Button} successCallback={refreshData} />
         {isCurrentUser && <PlayerStatEditButton game={game} buttonLabel="Update Stat" successCallback={refreshData} />}
+        {isCurrentUser && <DeletePlayerStatButton stat_id={playerStat.id} game_id={playerStat.game_id} successCallback={refreshData}/>}
 
     </div>
 }
