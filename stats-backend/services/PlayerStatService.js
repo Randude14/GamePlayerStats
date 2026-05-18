@@ -58,6 +58,7 @@ class PlayerStatService {
             'ps.game_id',
             'ps.hours_played',
             'ps.date_purchased',
+            'ps.is_favorite',
             'p.username as username',
             'g.cover_url as game_cover_url',
             'g.title as game_title',
@@ -113,6 +114,7 @@ class PlayerStatService {
             'ps.game_id',
             'ps.hours_played',
             'ps.date_purchased',
+            'ps.is_favorite',
             'g.cover_url as game_cover_url',
             'g.title as game_title',
             'g.release as game_release',
@@ -196,7 +198,7 @@ class PlayerStatService {
     }
 
     async createPlayerStat(player_id, data) {
-        const {game_id, hours_played, date_purchased} = data;
+        const {game_id, hours_played, date_purchased, rating} = data;
 
         const purchaseDateValid = await this.isDatePurchasedValid(game_id, date_purchased);
 
@@ -219,6 +221,7 @@ class PlayerStatService {
             game_id,
             hours_played, 
             date_purchased,
+            is_favorite: false,
             created_at: this.knex.fn.now()
         });
 
@@ -227,11 +230,6 @@ class PlayerStatService {
 
     async updatePlayerStat(id, data) {
         const {game_id, hours_played, date_purchased} = data;
-        const existingStat = await this.knex(Table.PLAYER_STAT_TABLE).where({ id }).first();
-
-        if(!existingStat) {
-            throw new AppError('Player stat does not exist.', 404);
-        }
 
         const purchaseDateValid = await this.isDatePurchasedValid(game_id, date_purchased);
 
@@ -242,10 +240,28 @@ class PlayerStatService {
         // Only update existing fields
         const dataToUpdate = extractExistingData(['hours_played', 'date_purchased'], data);
 
+        return await this.updateSimpleVar(id, dataToUpdate);
+    }
+
+    async setStatFavoriteFlag(id, is_favorite) {   
+        return await this.updateSimpleVar(id, { is_favorite });
+    }
+
+    async updateStatRating(id, rating) {
+        return await this.updateSimpleVar(id, { rating });
+    }
+
+    async updateSimpleVar(id, body) {
+        const existingStat = await this.knex(Table.PLAYER_STAT_TABLE).where({ id }).first();
+
+        if(!existingStat) {
+            throw new AppError('Player stat does not exist.', 404);
+        }
+
         const stat = await this.knex(Table.PLAYER_STAT_TABLE)
             .where({ id })
-            .update(dataToUpdate);
-        return stat;
+            .update(body);
+        return stat;    
     }
 
     async deletePlayerStat(id) {

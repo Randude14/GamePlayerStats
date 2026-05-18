@@ -29,18 +29,12 @@ type GameDataRow = {
 
 // -------- Main Export ------------
 export function GameSearchPage() {
-
-    const [refreshKey, setRefreshKey] = useState<number>(1);
     const [ searchParams ] = useSearchParams();
     const internalChecked: boolean = getInternalSearchParam(searchParams);
     const endpoint: string = internalChecked ? ApiRoutes.GAME_INTERNAL_SEARCH : ApiRoutes.GAME_EXTERNAL_SEARCH;
 
-    const onImportHandler = () => setRefreshKey(v => v + 1);
-
-    const infoCardBuilder =  (data: GameDataRow) => <GameInfoCard data={data} onImport={onImportHandler} />;
-        
     return <>
-        <InfoTable<GameDataRow> key={`$GameSearchPage-${refreshKey}`} auth={false} endpoint={endpoint} searchInputPlaceholder="Enter text to search for games."
+        <InfoTable<GameDataRow> key={`$GameSearchPage`} auth={false} endpoint={endpoint} searchInputPlaceholder="Enter text to search for games."
                 httpMethod={HttpMethod.GET} infoCardBuilder={infoCardBuilder} 
                 addPageNavigationElements={addPageNavigationElements} addSearchParams={addSearchParams} />
     </>
@@ -52,7 +46,7 @@ const getInternalSearchParam = (searchParams: URLSearchParams): boolean => {
     return searchParams.has(INTERNAL_PARAM) ? Boolean(searchParams.get(INTERNAL_PARAM) === "true") : true;
 }
 
-const GameInfoCard = ({ data, onImport }: { data: GameDataRow, onImport: () => void }): ReactElement => {
+const infoCardBuilder = (data: GameDataRow, onImport: () => void): ReactElement => {
     const params: URLSearchParams = new URLSearchParams(window.location.search);
     const highlightedText: string = params.get(QUERY_PARAM_ID);
 

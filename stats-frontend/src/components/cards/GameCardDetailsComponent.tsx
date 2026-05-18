@@ -58,7 +58,7 @@ export function GameCardDetails( { game, fullDetails, highlightedText, onImport 
         { !fullDetails && <div><ImportGameButton game_external_id={game.external_id} isImported={game.isImported} canImport={game.canImport} onImport={onImport} /></div> }
 
         { !fullDetails && game.isImported && <PlayerStatEditButton game={game} buttonLabel={userHaveGame ? "Update To Profile" : "Add To Profile"} successCallback={onImport} /> }
-        { userHaveGame && <DeletePlayerStatButton game_id={game.id} successCallback={onImport} /> }
+        { !fullDetails && userHaveGame && <DeletePlayerStatButton game_id={game.id} successCallback={onImport} /> }
 
     </div>
 }

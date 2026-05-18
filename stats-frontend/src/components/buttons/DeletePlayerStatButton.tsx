@@ -11,7 +11,7 @@ interface DeleteButtonProps {
 
 export function DeletePlayerStatButton( {stat_id, game_id, successCallback} : DeleteButtonProps ) {
     const { deletePlayerStat } = useApi();
-    const { getPlayerStatForGame } = useAuth();
+    const { getPlayerStatForGame, refreshPlayerStats } = useAuth();
 
     if (!stat_id && !game_id) {
         return <></>
@@ -31,6 +31,7 @@ export function DeletePlayerStatButton( {stat_id, game_id, successCallback} : De
 
     const onClickHandler = async () => {
         const stat: PlayerStat = await deletePlayerStat(stat_id);
+        await refreshPlayerStats();
 
         if(stat && successCallback) {
             successCallback();

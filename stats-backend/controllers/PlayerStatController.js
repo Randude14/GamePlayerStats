@@ -43,6 +43,19 @@ class PlayerStatController {
             checkNotNegative('hours_played', false),
         ], validateErrors(), this.catchAsyncRoute(this.updatePlayerStat));
 
+        app.patch('/api/player_stats/favorite/:stat_id', [
+            auth
+        ], validateErrors(), this.catchAsyncRoute(this.updateStatFavorite));
+
+        app.patch('/api/player_stats/unfavorite/:stat_id', [
+            auth
+        ], validateErrors(), this.catchAsyncRoute(this.updateStateUnfavorite));
+
+        app.patch('/api/player_stats/rating/:stat_id',[
+            auth,
+            check('rating', 'No rating found.').notEmpty()
+        ], validateErrors(), this.catchAsyncRoute(this.updateStatRating));
+
         app.delete('/api/player_stats/me/:stat_id', [
             auth
         ], validateErrors(), this.catchAsyncRoute(this.deletePlayerStat));
@@ -124,6 +137,28 @@ class PlayerStatController {
         }
 
         const playerStat = await this.playerStatService.updatePlayerStat(stat_id, req.body);
+        return res.status(200).json(playerStat);
+    }
+
+    async updateStatFavorite(req, res) {
+        const stat_id = req.params.stat_id;
+
+        const stat = await this.playerStatService.setStatFavoriteFlag(stat_id, true);
+        return res.status(200).json(playerStat);
+    }
+
+    async updateStateUnfavorite(req, res) {
+        const stat_id = req.params.stat_id;
+
+        const stat = await this.playerStatService.setStatFavoriteFlag(stat_id, false);
+        return res.status(200).json(playerStat);
+    }
+
+    async updateStatRating(req, res) {
+        const stat_id = req.params.stat_id;
+        const rating = req.body.rating;
+
+        const stat = await this.playerStatService.updateStatRating(stat_id, rating);
         return res.status(200).json(playerStat);
     }
 

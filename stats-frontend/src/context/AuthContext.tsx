@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
         }, []);
 
     const refreshPlayerStats = useCallback(
-        () => {
+        async () => {
             fetchWithAuth(ApiRoutes.GET_PLAYER_STATS_ME, HttpMethod.GET).then(async (res) => {
                 if(res.ok) {
                     const data = await res.json();
