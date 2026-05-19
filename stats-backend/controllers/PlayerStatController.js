@@ -124,7 +124,7 @@ class PlayerStatController {
             this.gameService.getById(game_id)
         ]);
 
-        const playerStat = await this.playerStatService.createPlayerStat(player_id, req.body);
+        const playerStat = await this.playerStatService.createPlayerStat(player_id, game_id, req.body);
         return res.status(201).json(playerStat);
     }
 
@@ -136,7 +136,7 @@ class PlayerStatController {
             return res.status(400).json({ error: 'User is not authorized to edit other players stats' });
         }
 
-        const playerStat = await this.playerStatService.updatePlayerStat(stat_id, req.body);
+        const playerStat = await this.playerStatService.updatePlayerStat(stat_id, playerStatCheck.game_id, req.body);
         return res.status(200).json(playerStat);
     }
 

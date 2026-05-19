@@ -31,6 +31,8 @@ export interface PlayerStat {
   game_id: number;
   hours_played: 0;
   date_purchased: string;
+  rating: number;
+  favorite: boolean;
   created_at: string;
   title?: string;
   release?: string;

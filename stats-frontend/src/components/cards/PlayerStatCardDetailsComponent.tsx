@@ -4,7 +4,6 @@ import { DetailsType, ViewGameDetailsAsyncButton } from "../buttons/ViewGameDeta
 import type { Game, RowObject } from "../../util/Models";
 import { PlayerStatEditButton } from "../buttons/PlayerStatEditButton";
 import { DeletePlayerStatButton } from "../buttons/DeletePlayerStatButton";
-import { PlayerStatLikeButton } from "../buttons/PlayerStatLikeButton";
 
 interface StatIdLabelProps {
     condition: boolean; 
@@ -23,6 +22,7 @@ export interface PlayerStatRow extends RowObject {
     game_id: number,
     username: string,
     is_favorite: boolean,
+    rating: number,
     hours_played: number,
     date_purchased: Date,
     game_title: string,
@@ -45,7 +45,7 @@ export function PlayerStatCardDetails( { playerStat, highlightUsername, highligh
 
     const datePurchased: string = new Date(playerStat.date_purchased).toLocaleDateString();
     const gameRelease: string = new Date(playerStat.game_release).toLocaleDateString();
-    const isCurrentUser = (user) ? user.username === playerStat.username : false
+    const isCurrentUser = (user) ? user.id === playerStat.player_id : false
 
     const game: Game = {
         id: playerStat.game_id,
@@ -68,6 +68,7 @@ export function PlayerStatCardDetails( { playerStat, highlightUsername, highligh
                 text={playerStat.game_title} highlightedText={highlightedText} /></div>
         <div><label>{`Hours Played: ${playerStat.hours_played}`}</label></div>
         <div><label>{ `Date Purchased: ${datePurchased}` }</label></div>
+        <div><label>{`Rating (1-10): ${playerStat.rating ?? 'N/A'}`}</label></div>
         <div><label>{ `Game Release: ${gameRelease}` }</label></div>
         <ViewGameDetailsAsyncButton gameId={playerStat.game_id} detailsType={DetailsType.Button} successCallback={refreshData} />
         {isCurrentUser && <PlayerStatEditButton game={game} buttonLabel="Update Stat" successCallback={refreshData} />}

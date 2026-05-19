@@ -4,7 +4,7 @@ import { useEditPopup, type EditPopupSettings } from "../../context/EditPopupCon
 import { blankImage } from "../../util/Helpers"
 import type { Game, PlayerStat } from "../../util/Models"
 import { GameCardDetails } from "../cards/GameCardDetailsComponent"
-import { PlayerStatPopupGenerator } from "../PlayerStatPopupGenerator"
+import { PlayerStatPopupGenerator, type PlayerStatFields } from "../PlayerStatPopupGenerator"
 import { useAuth } from "../../context/useAuth"
 import './GameDetails.css'
 import { PlayerStatLikeButton } from "./PlayerStatLikeButton"
@@ -44,12 +44,12 @@ function ViewGameDetailsButton( {game, detailsType, stat_id, player_id, is_favor
             if(game.isImported) {
                 const stat: PlayerStat = await getPlayerStat(user.id, game.id, true);
 
-                const playerStatSaveHandler = async (statId: number, gameId: number, date_purchased: string, hours_played: number) => {
+                const playerStatSaveHandler = async (statId: number, gameId: number, statFields: PlayerStatFields) => {
                     if(statId > 0) {
-                        await updatePlayerStat(statId, date_purchased, hours_played);
+                        await updatePlayerStat(statId, statFields, game.title);
                     }
                     else {
-                        await addPlayerStat(gameId, date_purchased, hours_played);
+                        await addPlayerStat(gameId, statFields, game.title);
                     }
 
                     if(successCallback) {

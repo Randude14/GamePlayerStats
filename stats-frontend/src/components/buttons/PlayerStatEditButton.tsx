@@ -2,7 +2,7 @@ import { useApi } from "../../context/ApiContext";
 import { useEditPopup, type EditPopupSettings } from "../../context/EditPopupContext";
 import { useAuth } from "../../context/useAuth";
 import type { Game, PlayerStat } from "../../util/Models";
-import { PlayerStatPopupGenerator } from "../PlayerStatPopupGenerator";
+import { PlayerStatPopupGenerator, type PlayerStatFields } from "../PlayerStatPopupGenerator";
 
 interface PlayerStatEditProps {
     game: Game;
@@ -20,12 +20,12 @@ export function PlayerStatEditButton({ game, disabled, buttonLabel, successCallb
         return <div><button disabled={true}>{buttonLabel}</button></div>
     }
 
-    const playerStatSaveHandler = async (statId: number, gameId: number, date_purchased: string, hours_played: number) => {
-        const status = statId > 0 ? await updatePlayerStat(statId, date_purchased, hours_played) : 
-                                    await addPlayerStat(gameId, date_purchased, hours_played);
+    const playerStatSaveHandler = async (statId: number, gameId: number, statFields: PlayerStatFields) => {
+        const status = statId > 0 ? await updatePlayerStat(statId, statFields, game.title) : 
+                                    await addPlayerStat(gameId, statFields, game.title);
 
         if(status) {
-            refreshPlayerStats();
+            await refreshPlayerStats();
 
             if(successCallback) {
                 successCallback();

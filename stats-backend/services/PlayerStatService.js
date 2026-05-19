@@ -60,6 +60,7 @@ class PlayerStatService {
             'ps.hours_played',
             'ps.date_purchased',
             'ps.is_favorite',
+            'ps.rating',
             'p.username as username',
             'g.cover_url as game_cover_url',
             'g.title as game_title',
@@ -117,6 +118,7 @@ class PlayerStatService {
             'ps.hours_played',
             'ps.date_purchased',
             'ps.is_favorite',
+            'ps.rating',
             'g.cover_url as game_cover_url',
             'g.title as game_title',
             'g.release as game_release',
@@ -199,8 +201,8 @@ class PlayerStatService {
         return dashboardInfo;
     }
 
-    async createPlayerStat(player_id, data) {
-        const {game_id, hours_played, date_purchased, rating} = data;
+    async createPlayerStat(player_id, game_id, data) {
+        const {date_purchased, hours_played, rating} = data;
 
         const purchaseDateValid = await this.isDatePurchasedValid(game_id, date_purchased);
 
@@ -223,6 +225,7 @@ class PlayerStatService {
             game_id,
             hours_played, 
             date_purchased,
+            rating,
             is_favorite: false,
             created_at: this.knex.fn.now()
         });
@@ -230,8 +233,10 @@ class PlayerStatService {
         return playerStat;
     }
 
-    async updatePlayerStat(id, data) {
-        const {game_id, hours_played, date_purchased} = data;
+    async updatePlayerStat(id, game_id, data) {
+        const {date_purchased} = data;
+
+        console.log(data);
 
         const purchaseDateValid = await this.isDatePurchasedValid(game_id, date_purchased);
 
@@ -240,7 +245,7 @@ class PlayerStatService {
         }
 
         // Only update existing fields
-        const dataToUpdate = extractExistingData(['hours_played', 'date_purchased'], data);
+        const dataToUpdate = extractExistingData(['hours_played', 'date_purchased', 'rating'], data);
 
         return await this.updateSimpleVar(id, dataToUpdate);
     }

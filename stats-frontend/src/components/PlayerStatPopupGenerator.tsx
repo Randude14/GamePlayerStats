@@ -6,22 +6,30 @@ import './player-stat-edit.css'
 interface PlayerStatEditSettings {
     stat?: PlayerStat,
     game: Game,
-    submitCallback: (statId: number, gameId: number, datePurchased: string, hoursPlayed: number) => void;
+    submitCallback: (statId: number, gameId: number, update: PlayerStatFields) => void;
     userId: number;
+}
+
+export interface PlayerStatFields {
+    date_purchased: string;
+    hours_played: number;
+    rating: number;
 }
 
 const DATE_PURCHASED_ID: string = "edit-date-purchased";
 const HOURS_PLAYED_ID: string = "hours-played-purchased";
+const RATING_ID: string = "rating-title";
 
-const BuildPlayerStatPopup = (game: Game, datePurchased: string, hoursPlayed: number) => {
+const BuildPlayerStatPopup = (game: Game, datePurchased: string, hoursPlayed: number, rating: number) => {
 
     return <div className="player-stat-edit">
         <label>{`Title: ${game.title}`}</label>
         <label>{`Developer: ${getFirstObject(game.developers)}`}</label>
         <label>{`Publisher: ${getFirstObject(game.publishers)}`}</label>
         <label>{`Release Date: ${new Date(game.release).toLocaleDateString()}`}</label>
-        <label>Date Purchased: </label> <input type="date" id={DATE_PURCHASED_ID} defaultValue={datePurchased || ''}/>
-        <label>Hours Played: </label> <input type="number" step="0.1" id={HOURS_PLAYED_ID} defaultValue={hoursPlayed || 0} />
+        <label>Date Purchased: </label> <input type="date" id={DATE_PURCHASED_ID} defaultValue={datePurchased ?? ''}/>
+        <label>Hours Played: </label> <input type="number" step="0.1" id={HOURS_PLAYED_ID} defaultValue={hoursPlayed ?? 0} />
+        <label>Rating: </label> <input type="number" step="0.1" max={10} min={1} id={RATING_ID} defaultValue={rating ?? 1} />
     </div>
 }
 
@@ -29,6 +37,7 @@ export async function PlayerStatPopupGenerator(settings : PlayerStatEditSettings
 
     let datePurchased: string = settings.stat?.date_purchased?.replaceAll('/', '-') ?? settings.game?.release;
     const hoursPlayed: number = settings.stat?.hours_played ?? 0;
+    const rating: number = settings.stat?.rating ?? 1;
 
     if(!datePurchased) {
         datePurchased = new Date().toISOString();
@@ -39,16 +48,18 @@ export async function PlayerStatPopupGenerator(settings : PlayerStatEditSettings
     }
 
     const elementBuilder = () => {
-        return BuildPlayerStatPopup(settings.game, datePurchased, hoursPlayed);
+        return BuildPlayerStatPopup(settings.game, datePurchased, hoursPlayed, rating);
     }
 
     const clickCallback = () => {
         const datePurchasedInput: HTMLInputElement = document.getElementById(DATE_PURCHASED_ID) as HTMLInputElement;
         const hoursPlayedInput: HTMLInputElement = document.getElementById(HOURS_PLAYED_ID) as HTMLInputElement;
+        const ratingInput: HTMLInputElement = document.getElementById(RATING_ID) as HTMLInputElement;
 
-        if(datePurchasedInput && hoursPlayedInput) {
+        if(datePurchasedInput && hoursPlayedInput && ratingInput) {
             const datePurchased = datePurchasedInput.value;
             const hoursPlayed = hoursPlayedInput.value;
+            const rating = ratingInput.value;
 
             if(! datePurchased || !isValidDate(datePurchased)) {
                 return false;
@@ -56,8 +67,15 @@ export async function PlayerStatPopupGenerator(settings : PlayerStatEditSettings
             if(! hoursPlayed || isNaN(Number(hoursPlayed))) {
                 return false;
             }
+            if(! rating || isNaN(Number(rating))) {
+                return false;
+            }
 
-            settings.submitCallback(settings.stat?.id, settings.game.id, datePurchasedInput.value, Number(hoursPlayedInput.value)); 
+            settings.submitCallback(settings.stat?.id, settings.game.id, {
+                date_purchased: datePurchasedInput.value, 
+                hours_played: Number(hoursPlayedInput.value), 
+                rating: Number(rating)
+            }); 
         }
 
         return true;

@@ -10,6 +10,7 @@ import {  HttpMethod } from "../util/serverRequests";
 import type { Game, PlayerDashboard, PlayerStat, RowObject, SearchResults } from "../util/Models";
 import { addPlayerStatRequest, authPlayerRequest, createPlayerRequest, deletePlayerStatRequest, getGameByIdRequest, getPlayerDashboardRequest, getPlayerStatRequest, importExternalGameRequest, playerStatFavoriteRequest, searchResultsRequest, updatePlayerFieldRequest, updatePlayerPasswordRequest, updatePlayerStatRequest } from "./apiService";
 import { ApiRoutes } from "../util/ApiRoutes";
+import type { PlayerStatFields } from "../components/PlayerStatPopupGenerator";
 
 type ApiContextValue = {
 	createPlayer: (
@@ -58,14 +59,14 @@ type ApiContextValue = {
 
 	addPlayerStat: (
 		game_id: number,
-		date_purchased: string,
-		hours_played: number
+		statFields: PlayerStatFields,
+		gameName: string
 	) => Promise<boolean>
 
 	updatePlayerStat: (
 		stat_id: number,
-		date_purchased: string,
-		hours_played: number
+		statFields: PlayerStatFields,
+		gameName: string
 	) => Promise<boolean>
 
 	likePlayerStat: (
@@ -83,7 +84,8 @@ type ApiContextValue = {
 	) => Promise<PlayerStat>
 
 	deletePlayerStat: (
-		stat_id: number
+		stat_id: number,
+		gameName: string
 	) => Promise<PlayerStat>
 };
 
@@ -220,11 +222,11 @@ export function ApiProvider({ children }: ApiProviderProps) {
 
 	const addPlayerStat = async (
 		game_id: number,
-		date_purchased: string,
-		hours_played: number
- 	) : Promise<boolean> => await runApi( () => addPlayerStatRequest(game_id, date_purchased, hours_played),
+		statFields: PlayerStatFields,
+		gameName: string
+ 	) : Promise<boolean> => await runApi( () => addPlayerStatRequest(game_id, statFields),
 		{
-			successMessage: "Stat added to profile."
+			successMessage: `${gameName ?? 'Game'} added to profile.`
 		}
 	);	
 
@@ -236,11 +238,11 @@ export function ApiProvider({ children }: ApiProviderProps) {
 
 	const updatePlayerStat = async (
 		stat_id: number,
-		date_purchased: string,
-		hours_played: number
- 	) : Promise<boolean> => await runApi( () => updatePlayerStatRequest(stat_id, date_purchased, hours_played),
+		statFields: PlayerStatFields,
+		gameName: string
+ 	) : Promise<boolean> => await runApi( () => updatePlayerStatRequest(stat_id, statFields),
 		{
-			successMessage: "Stat updated to profile."
+			successMessage: `${gameName ?? 'Game'} updated to profile.`
 		}
 	);	
 
@@ -253,10 +255,11 @@ export function ApiProvider({ children }: ApiProviderProps) {
  	) : Promise<PlayerStat> => await runApi( () => playerStatFavoriteRequest(stat_id, false));	
 
 	const deletePlayerStat = async (
-		stat_id: number
+		stat_id: number,
+		gameName: string
 	) : Promise<PlayerStat> => await runApi( () => deletePlayerStatRequest(stat_id),
 		{
-			successMessage: "Stat deleted from profile."
+			successMessage: `${gameName ?? 'Game'} delete from profile.`
 		}
 	);
 

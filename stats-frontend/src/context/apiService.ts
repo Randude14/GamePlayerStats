@@ -1,3 +1,4 @@
+import type { PlayerStatFields } from "../components/PlayerStatPopupGenerator";
 import { ApiRoutes } from "../util/ApiRoutes";
 import type { Game, PlayerDashboard, PlayerStat, RowObject, SearchResults } from "../util/Models";
 import { buildUrl, fetchURLWithAuth, fetchURLWithNoAuth, fetchWithAuth, fetchWithNoAuth, HttpMethod } from "../util/serverRequests";
@@ -159,8 +160,8 @@ export async function getGameByIdRequest(gameId: number): Promise<Game> {
     return data as Game;
 }
 
-export async function updatePlayerStatRequest(stat_id: number, date_purchased: string, hours_played: number): Promise<boolean> {
-    const body: string = JSON.stringify({ date_purchased, hours_played });
+export async function updatePlayerStatRequest(stat_id: number, fields: PlayerStatFields): Promise<boolean> {
+    const body: string = JSON.stringify(fields);
     const res = await fetchWithAuth( formatRoute(ApiRoutes.UPDATE_PLAYER_STAT, stat_id), HttpMethod.PATCH, body );
     const data = await res.json();
 
@@ -171,8 +172,8 @@ export async function updatePlayerStatRequest(stat_id: number, date_purchased: s
     return true;
 }
 
-export async function addPlayerStatRequest(game_id: number, date_purchased: string, hours_played: number): Promise<boolean> {
-    const body: string = JSON.stringify({ game_id, date_purchased, hours_played });
+export async function addPlayerStatRequest(game_id: number, statFields: PlayerStatFields): Promise<boolean> {
+    const body: string = JSON.stringify({ game_id, ...statFields });
     const res = await fetchWithAuth( ApiRoutes.ADD_PLAYER_STAT, HttpMethod.POST, body );
     const data = await res.json();
 
