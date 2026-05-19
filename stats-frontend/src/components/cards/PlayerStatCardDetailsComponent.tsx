@@ -4,6 +4,7 @@ import { DetailsType, ViewGameDetailsAsyncButton } from "../buttons/ViewGameDeta
 import type { Game, RowObject } from "../../util/Models";
 import { PlayerStatEditButton } from "../buttons/PlayerStatEditButton";
 import { DeletePlayerStatButton } from "../buttons/DeletePlayerStatButton";
+import { PlayerStatLikeButton } from "../buttons/PlayerStatLikeButton";
 
 interface StatIdLabelProps {
     condition: boolean; 
@@ -21,6 +22,7 @@ export interface PlayerStatRow extends RowObject {
     player_id: number,
     game_id: number,
     username: string,
+    is_favorite: boolean,
     hours_played: number,
     date_purchased: Date,
     game_title: string,
@@ -59,7 +61,7 @@ export function PlayerStatCardDetails( { playerStat, highlightUsername, highligh
     }
 
     return <div className="info-card-fields">
-        <ViewGameDetailsAsyncButton gameId={playerStat.game_id} detailsType={DetailsType.Image} />
+        <ViewGameDetailsAsyncButton gameId={playerStat.game_id} detailsType={DetailsType.Image} stat_id={playerStat.id} player_id={playerStat.player_id} is_favorite={playerStat.is_favorite} />
         <div><label>{`User: `}</label> <StatIdLabel className="" condition={highlightUsername} 
                 text={playerStat.username} highlightedText={highlightedText} /> </div>
         <div><StatIdLabel className="" condition={highlightGame} 

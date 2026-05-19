@@ -1,6 +1,7 @@
 .edit-popup-background {
     background-color: #000000a5;
     position: fixed;
+    z-index: 100;
     top: 0;
     left: 0;
     width: 100vw;

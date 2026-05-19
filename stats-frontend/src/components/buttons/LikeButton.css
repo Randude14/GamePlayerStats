@@ -1,0 +1,18 @@
+.like-button {
+    position: relative;
+    background-color: #ffffff00;
+    border: 0;
+    padding: 0;
+    height: 0px;
+    align-self:flex-start;
+}
+
+.like-image {
+    position:relative;
+    z-index: 1;
+    top: 5px;
+    left: 5px;
+    max-width: 50px;
+    height: auto;
+    cursor: pointer;
+}

@@ -143,14 +143,14 @@ class PlayerStatController {
     async updateStatFavorite(req, res) {
         const stat_id = req.params.stat_id;
 
-        const stat = await this.playerStatService.setStatFavoriteFlag(stat_id, true);
+        const playerStat = await this.playerStatService.setStatFavoriteFlag(stat_id, true);
         return res.status(200).json(playerStat);
     }
 
     async updateStateUnfavorite(req, res) {
         const stat_id = req.params.stat_id;
 
-        const stat = await this.playerStatService.setStatFavoriteFlag(stat_id, false);
+        const playerStat = await this.playerStatService.setStatFavoriteFlag(stat_id, false);
         return res.status(200).json(playerStat);
     }
 
@@ -158,7 +158,7 @@ class PlayerStatController {
         const stat_id = req.params.stat_id;
         const rating = req.body.rating;
 
-        const stat = await this.playerStatService.updateStatRating(stat_id, rating);
+        const playerStat = await this.playerStatService.updateStatRating(stat_id, rating);
         return res.status(200).json(playerStat);
     }
 

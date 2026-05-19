@@ -1,0 +1,7 @@
+.details-image {
+    display: flex;
+    flex-direction: column;
+    width: fit-content;
+    align-self: center;
+    gap: 0px;
+}

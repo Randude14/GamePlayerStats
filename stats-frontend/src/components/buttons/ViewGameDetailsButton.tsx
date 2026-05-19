@@ -6,6 +6,8 @@ import type { Game, PlayerStat } from "../../util/Models"
 import { GameCardDetails } from "../cards/GameCardDetailsComponent"
 import { PlayerStatPopupGenerator } from "../PlayerStatPopupGenerator"
 import { useAuth } from "../../context/useAuth"
+import './GameDetails.css'
+import { PlayerStatLikeButton } from "./PlayerStatLikeButton"
 
 const DetailsType = {
     Image: 'Image',
@@ -15,10 +17,13 @@ const DetailsType = {
 interface GameDetailsProps {
     game: Game,
     detailsType: string,
+    stat_id?: number,
+    player_id?: number,
+    is_favorite?: boolean,
     successCallback?: () => void
 }
 
-function ViewGameDetailsButton( {game, detailsType, successCallback } : GameDetailsProps ) {
+function ViewGameDetailsButton( {game, detailsType, stat_id, player_id, is_favorite, successCallback } : GameDetailsProps ) {
     const { showPopup } = useEditPopup();
     const { importExternalGame, getPlayerStat, updatePlayerStat, addPlayerStat } = useApi();
     const { user, doesPlayerHaveStatFor } = useAuth();
@@ -93,7 +98,17 @@ function ViewGameDetailsButton( {game, detailsType, successCallback } : GameDeta
     }
 
     if(String(detailsType) === DetailsType.Image) {
-        return <div><img className="info-card-image" src={game.cover_url || blankImage()} onClick={onViewButtonHandler}/></div>
+        if(!!stat_id && !!player_id && is_favorite !== undefined) {
+            return <div className="details-image">
+                <PlayerStatLikeButton stat_id={stat_id} player_id={player_id} liked={is_favorite}/>
+                <img className="info-card-image" src={game.cover_url || blankImage()} onClick={onViewButtonHandler}/>
+            </div>
+        }
+        else {
+            return <div className="details-image">
+                <img className="info-card-image" src={game.cover_url || blankImage()} onClick={onViewButtonHandler}/>
+            </div>
+        }
     }
 
     return <></>
@@ -104,10 +119,13 @@ function ViewGameDetailsButton( {game, detailsType, successCallback } : GameDeta
 interface GameDetailsAsyncProps {
     gameId: number,
     detailsType: string,
+    stat_id?: number,
+    player_id?: number,
+    is_favorite?: boolean,
     successCallback?: () => void
 }
 
-function ViewGameDetailsAsyncButton( {gameId, detailsType, successCallback } : GameDetailsAsyncProps) {
+function ViewGameDetailsAsyncButton( {gameId, detailsType, stat_id, player_id, is_favorite, successCallback } : GameDetailsAsyncProps) {
     const { getGameById } = useApi();
     const [game, setGame] = useState(null);
 
@@ -128,7 +146,7 @@ function ViewGameDetailsAsyncButton( {gameId, detailsType, successCallback } : G
         return <>Loading...</>
     }
 
-    return <ViewGameDetailsButton game={game} detailsType={detailsType} successCallback={successCallback} />
+    return <ViewGameDetailsButton game={game} detailsType={detailsType} successCallback={successCallback} stat_id={stat_id} player_id={player_id} is_favorite={is_favorite} />
 }
 
 export { DetailsType, ViewGameDetailsAsyncButton, ViewGameDetailsButton };

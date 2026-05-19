@@ -195,6 +195,18 @@ export async function getPlayerStatRequest(player_id: number, game_id: number, s
     return data as PlayerStat;
 }
 
+export async function playerStatFavoriteRequest(stat_id: number, is_favorite: boolean): Promise<PlayerStat> {
+    const apiRoute: string = is_favorite ? ApiRoutes.FAVORITE_PLAYER_STAT : ApiRoutes.UNFAVORITE_PLAYER_STAT;
+    const res = await fetchWithAuth( formatRoute(apiRoute, stat_id), HttpMethod.PATCH );
+    const data = await res.json();
+
+    if(!res.ok) {
+        throw new ApiServiceError(data, 'Failed to like player stat.');
+    }
+
+    return data as PlayerStat;
+}
+
 export async function deletePlayerStatRequest(stat_id: number): Promise<PlayerStat> {
     const res = await fetchWithAuth( formatRoute(ApiRoutes.DELETE_PLAYER_STAT, stat_id), HttpMethod.DELETE );
     const data = await res.json();

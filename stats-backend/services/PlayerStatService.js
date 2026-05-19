@@ -54,6 +54,7 @@ class PlayerStatService {
                 .join(`${Table.PLAYER_TABLE} as p`, 'ps.player_id', 'p.id')
         )
         .select(
+            'ps.id',
             'ps.player_id',
             'ps.game_id',
             'ps.hours_played',
@@ -110,6 +111,7 @@ class PlayerStatService {
                 .join(`${Table.GAME_TABLE} as g`, 'ps.game_id', 'g.id')
         )
         .select(
+            'ps.id',
             'ps.player_id',
             'ps.game_id',
             'ps.hours_played',

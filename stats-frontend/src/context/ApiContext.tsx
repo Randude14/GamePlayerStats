@@ -8,7 +8,7 @@ import { useToast } from "./ToastContext";
 import { useAuth } from "./useAuth";
 import {  HttpMethod } from "../util/serverRequests";
 import type { Game, PlayerDashboard, PlayerStat, RowObject, SearchResults } from "../util/Models";
-import { addPlayerStatRequest, authPlayerRequest, createPlayerRequest, deletePlayerStatRequest, getGameByIdRequest, getPlayerDashboardRequest, getPlayerStatRequest, importExternalGameRequest, searchResultsRequest, updatePlayerFieldRequest, updatePlayerPasswordRequest, updatePlayerStatRequest } from "./apiService";
+import { addPlayerStatRequest, authPlayerRequest, createPlayerRequest, deletePlayerStatRequest, getGameByIdRequest, getPlayerDashboardRequest, getPlayerStatRequest, importExternalGameRequest, playerStatFavoriteRequest, searchResultsRequest, updatePlayerFieldRequest, updatePlayerPasswordRequest, updatePlayerStatRequest } from "./apiService";
 import { ApiRoutes } from "../util/ApiRoutes";
 
 type ApiContextValue = {
@@ -67,6 +67,14 @@ type ApiContextValue = {
 		date_purchased: string,
 		hours_played: number
 	) => Promise<boolean>
+
+	likePlayerStat: (
+		stat_id: number,
+	) => Promise<PlayerStat>
+
+	unlikePlayerStat: (
+		stat_id: number,
+	) => Promise<PlayerStat>
 
 	getPlayerStat: (
 		player_id: number,
@@ -236,6 +244,14 @@ export function ApiProvider({ children }: ApiProviderProps) {
 		}
 	);	
 
+	const likePlayerStat = async (
+		stat_id: number
+ 	) : Promise<PlayerStat> => await runApi( () => playerStatFavoriteRequest(stat_id, true));	
+
+	const unlikePlayerStat = async (
+		stat_id: number
+ 	) : Promise<PlayerStat> => await runApi( () => playerStatFavoriteRequest(stat_id, false));	
+
 	const deletePlayerStat = async (
 		stat_id: number
 	) : Promise<PlayerStat> => await runApi( () => deletePlayerStatRequest(stat_id),
@@ -256,6 +272,8 @@ export function ApiProvider({ children }: ApiProviderProps) {
 		getGameById,
 		addPlayerStat,
 		updatePlayerStat,
+		likePlayerStat,
+		unlikePlayerStat,
 		getPlayerStat,
 		deletePlayerStat
 	};

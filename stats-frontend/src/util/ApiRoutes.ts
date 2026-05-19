@@ -23,6 +23,8 @@ const ApiRoutes = {
     GET_PLAYER_DASHBOARD: '/player_stats/dashboard/{0}',
     ADD_PLAYER_STAT: '/player_stats',
     UPDATE_PLAYER_STAT: '/player_stats/{0}',
+    FAVORITE_PLAYER_STAT: '/player_stats/favorite/{0}',
+    UNFAVORITE_PLAYER_STAT: '/player_stats/unfavorite/{0}',
     GET_STAT_FROM_PLAYER_AND_GAME: '/player_stats/search/{0}/game/{1}',
     GET_STATS_FROM_PLAYER: '/player_stats/search/{0}',
     GET_PLAYER_STATS_ME: '/player_stats/me',
