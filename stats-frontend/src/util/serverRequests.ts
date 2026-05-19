@@ -1,3 +1,5 @@
+import { globalLogout } from "../context/AuthContext";
+import { WebPageRoutes } from "./WebPages";
 
 const HttpMethod = {
     PUT: 'PUT',
@@ -59,6 +61,13 @@ async function fetchURLWithAuth(url: string, method: typeof HttpMethod[keyof typ
             method: method,
             headers: {'x-auth-token': token},
         });
+
+        // Server could verify user or there token has expired
+        if(!res.ok && res.status === 401) {
+            globalLogout(); // removes token from localstorage
+            window.location.href = WebPageRoutes.ACCOUNT;
+            return Promise.reject("User token expired. Please login again.");
+        }
 
         return res;
     }

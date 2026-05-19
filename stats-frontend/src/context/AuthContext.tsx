@@ -86,3 +86,7 @@ export const AuthProvider = ({ children }) => {
         </AuthContext.Provider>
     );
 };
+
+export function globalLogout() {
+    localStorage.removeItem("token");
+}
