@@ -72,7 +72,7 @@ export function PlayerStatCardDetails( { playerStat, highlightUsername, highligh
         <div><label>{ `Game Release: ${gameRelease}` }</label></div>
         <ViewGameDetailsAsyncButton gameId={playerStat.game_id} detailsType={DetailsType.Button} successCallback={refreshData} />
         {isCurrentUser && <PlayerStatEditButton game={game} buttonLabel="Update Stat" successCallback={refreshData} />}
-        {isCurrentUser && <DeletePlayerStatButton stat_id={playerStat.id} game_id={playerStat.game_id} successCallback={refreshData}/>}
+        {isCurrentUser && <DeletePlayerStatButton stat_id={playerStat.id} game_id={playerStat.game_id} game_name={playerStat.game_title} successCallback={refreshData}/>}
 
     </div>
 }

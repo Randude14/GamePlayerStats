@@ -1,4 +1,5 @@
 import { useApi } from "../../context/ApiContext"
+import { useEditPopup, type EditPopupSettings } from "../../context/EditPopupContext";
 import { useAuth } from "../../context/useAuth";
 import type { PlayerStat } from "../../util/Models";
 import "./DeletePlayerStatButton.css"
@@ -6,12 +7,14 @@ import "./DeletePlayerStatButton.css"
 interface DeleteButtonProps {
     stat_id?: number;
     game_id?: number;
+    game_name?: string;
     successCallback?: () => void
 }
 
-export function DeletePlayerStatButton( {stat_id, game_id, successCallback} : DeleteButtonProps ) {
+export function DeletePlayerStatButton( {stat_id, game_id, game_name, successCallback} : DeleteButtonProps ) {
     const { deletePlayerStat } = useApi();
     const { getPlayerStatForGame, refreshPlayerStats } = useAuth();
+    const { showPopup } = useEditPopup();
 
     if (!stat_id && !game_id) {
         return <></>
@@ -30,13 +33,39 @@ export function DeletePlayerStatButton( {stat_id, game_id, successCallback} : De
     }
 
     const onClickHandler = async () => {
-        const stat: PlayerStat = await deletePlayerStat(stat_id);
-        await refreshPlayerStats();
 
-        if(stat && successCallback) {
-            successCallback();
+        const deleteGame = async () => {
+            const stat: PlayerStat = await deletePlayerStat(stat_id, game_name);
+            await refreshPlayerStats();
+
+            if(stat && successCallback) {
+                successCallback();
+                return true;
+            }
+
+            return false;
         }
+
+        const popupSettings: EditPopupSettings = openDeleteStatPopup(game_name, deleteGame);
+
+        showPopup(popupSettings);
     }
 
-    return <div><button className="delete-stat-button" onClick={onClickHandler}>Delete Stat</button></div>;
+    return <div><button className="delete-stat-button" onClick={onClickHandler}>Delete Game</button></div>;
+}
+
+function openDeleteStatPopup(gameName: string, deleteGame: () => Promise<boolean>): EditPopupSettings {
+
+    const labelBuilder = () => <label>{`Are you sure you want to delete ${gameName ? gameName : 'this title'} from your profile?`}</label>
+
+    const clickCallback = () => {
+        deleteGame();
+        return true;
+    }
+
+    return {
+        elementBuilder: labelBuilder,
+        submitLabel: 'Delete',
+        clickCallback
+    }
 }
