@@ -20,6 +20,9 @@ const DATE_PURCHASED_ID: string = "edit-date-purchased";
 const HOURS_PLAYED_ID: string = "hours-played-purchased";
 const RATING_ID: string = "rating-title";
 
+const MIN_HOURS_PLAYED: number = 0;
+const MAX_HOURS_PLAYED: number = 100000;
+
 const BuildPlayerStatPopup = (game: Game, datePurchased: string, hoursPlayed: number, rating: number) => {
 
     return <div className="player-stat-edit">
@@ -28,7 +31,7 @@ const BuildPlayerStatPopup = (game: Game, datePurchased: string, hoursPlayed: nu
         <label>{`Publisher: ${getFirstObject(game.publishers)}`}</label>
         <label>{`Release Date: ${new Date(game.release).toLocaleDateString()}`}</label>
         <label>Date Purchased: </label> <input type="date" id={DATE_PURCHASED_ID} defaultValue={datePurchased ?? ''}/>
-        <label>Hours Played: </label> <input type="number" step="0.1" id={HOURS_PLAYED_ID} defaultValue={hoursPlayed ?? 0} />
+        <label>Hours Played: </label> <input type="number" min={MIN_HOURS_PLAYED} max={MAX_HOURS_PLAYED} step="0.1" id={HOURS_PLAYED_ID} defaultValue={hoursPlayed ?? 0} />
         <label>Rating: </label> <input type="number" step="0.1" max={10} min={1} id={RATING_ID} defaultValue={rating ?? 1} />
     </div>
 }
@@ -71,10 +74,14 @@ export async function PlayerStatPopupGenerator(settings : PlayerStatEditSettings
                 return false;
             }
 
+            // Ensure rating is between 1 and 10
+            const ratingNum: number = Math.max( 1, Math.min(10, Number(rating) ) );
+            const hoursPlayedNum: number = Math.max( MIN_HOURS_PLAYED, Math.min(MAX_HOURS_PLAYED, Number(hoursPlayed) ) );
+
             settings.submitCallback(settings.stat?.id, settings.game.id, {
                 date_purchased: datePurchasedInput.value, 
-                hours_played: Number(hoursPlayedInput.value), 
-                rating: Number(rating)
+                hours_played: hoursPlayedNum, 
+                rating: ratingNum
             }); 
         }
 

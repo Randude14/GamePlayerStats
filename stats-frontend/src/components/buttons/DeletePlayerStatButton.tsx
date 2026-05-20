@@ -13,7 +13,7 @@ interface DeleteButtonProps {
 
 export function DeletePlayerStatButton( {stat_id, game_id, game_name, successCallback} : DeleteButtonProps ) {
     const { deletePlayerStat } = useApi();
-    const { getPlayerStatForGame, refreshPlayerStats } = useAuth();
+    const { getPlayerStatForGame } = useAuth();
     const { showPopup } = useEditPopup();
 
     if (!stat_id && !game_id) {
@@ -36,7 +36,6 @@ export function DeletePlayerStatButton( {stat_id, game_id, game_name, successCal
 
         const deleteGame = async () => {
             const stat: PlayerStat = await deletePlayerStat(stat_id, game_name);
-            await refreshPlayerStats();
 
             if(stat && successCallback) {
                 successCallback();

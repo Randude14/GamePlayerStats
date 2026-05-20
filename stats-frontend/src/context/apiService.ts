@@ -189,8 +189,13 @@ export async function getPlayerStatRequest(player_id: number, game_id: number, s
     const data = await res.json();
 
     // Silent failure flag
-    if(!res.ok && !silentFailure) {
-        throw new ApiServiceError(data, 'Failed to find player stat.');
+    if(!res.ok) {
+        if(!silentFailure) {
+            throw new ApiServiceError(data, 'Failed to find player stat.');
+        }
+        else {
+            return null;
+        }
     }
 
     return data as PlayerStat;
@@ -203,6 +208,18 @@ export async function playerStatFavoriteRequest(stat_id: number, is_favorite: bo
 
     if(!res.ok) {
         throw new ApiServiceError(data, 'Failed to like player stat.');
+    }
+
+    return data as PlayerStat;
+}
+
+export async function playerStatUpdateCompletionRequest(stat_id: number, status: string) {
+    const body: string = JSON.stringify({ completion_status: status });
+    const res = await fetchWithAuth( formatRoute(ApiRoutes.UPDATE_STAT_COMPLETION, stat_id), HttpMethod.PATCH, body );
+    const data = await res.json();
+
+    if(!res.ok) {
+        throw new ApiServiceError(data, 'Failed to update completion status.');
     }
 
     return data as PlayerStat;

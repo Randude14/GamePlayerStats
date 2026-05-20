@@ -13,6 +13,15 @@ class PlayerStatService {
     constructor(_knex, _gameService) {
         this.knex = _knex;
         this.gameService = _gameService;
+        this.VALID_STATUSES = [
+            "not_started",
+            "playing",
+            "completed",
+            "dropped",
+            "on_hold",
+            "endless",
+            "platinum",
+        ];
     }
 
     async getAllStats() {
@@ -250,6 +259,17 @@ class PlayerStatService {
         return await this.updateSimpleVar(id, dataToUpdate);
     }
 
+    async setCompletionStatus(id, status) {
+
+        status = status.toLowerCase();
+
+        if(!this.isCompletionStatusValid(status)) {
+            throw new AppError('Completion status not valid.', 400);
+        }
+
+        return await this.updateSimpleVar(id, {completion_status: status});
+    }
+
     async setStatFavoriteFlag(id, is_favorite) {   
         return await this.updateSimpleVar(id, { is_favorite });
     }
@@ -263,6 +283,17 @@ class PlayerStatService {
 
         if(!existingStat) {
             throw new AppError('Player stat does not exist.', 404);
+        }
+
+        if(body.hours_played) {
+            const hours_played = body.hours_played;
+
+            if (
+                hours_played != null &&
+                (hours_played < 0 || hours_played > 100000)
+            ) {
+                throw new AppError('Input too high for the hours played!', 400);
+            }
         }
 
         const stat = await this.knex(Table.PLAYER_STAT_TABLE)
@@ -297,6 +328,10 @@ class PlayerStatService {
         }
 
         return true;
+    }
+
+    isCompletionStatusValid(completion_status) {
+        return this.VALID_STATUSES.includes(completion_status);
     }
 
 }

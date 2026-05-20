@@ -56,6 +56,11 @@ class PlayerStatController {
             check('rating', 'No rating found.').notEmpty()
         ], validateErrors(), this.catchAsyncRoute(this.updateStatRating));
 
+        app.patch('/api/player_stats/completion/:stat_id', [
+            auth,
+            check('completion_status').notEmpty()
+        ], validateErrors(), this.catchAsyncRoute(this.updateCompletionStatus));
+
         app.delete('/api/player_stats/me/:stat_id', [
             auth
         ], validateErrors(), this.catchAsyncRoute(this.deletePlayerStat));
@@ -159,6 +164,14 @@ class PlayerStatController {
         const rating = req.body.rating;
 
         const playerStat = await this.playerStatService.updateStatRating(stat_id, rating);
+        return res.status(200).json(playerStat);
+    }
+
+    async updateCompletionStatus(req, res) {
+        const stat_id = req.params.stat_id;
+        const completion_status = req.body.completion_status;
+
+        const playerStat = await this.playerStatService.setCompletionStatus(stat_id, completion_status);
         return res.status(200).json(playerStat);
     }
 

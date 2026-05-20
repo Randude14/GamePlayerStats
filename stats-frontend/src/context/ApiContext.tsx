@@ -8,7 +8,7 @@ import { useToast } from "./ToastContext";
 import { useAuth } from "./useAuth";
 import {  HttpMethod } from "../util/serverRequests";
 import type { Game, PlayerDashboard, PlayerStat, RowObject, SearchResults } from "../util/Models";
-import { addPlayerStatRequest, authPlayerRequest, createPlayerRequest, deletePlayerStatRequest, getGameByIdRequest, getPlayerDashboardRequest, getPlayerStatRequest, importExternalGameRequest, playerStatFavoriteRequest, searchResultsRequest, updatePlayerFieldRequest, updatePlayerPasswordRequest, updatePlayerStatRequest } from "./apiService";
+import { addPlayerStatRequest, authPlayerRequest, createPlayerRequest, deletePlayerStatRequest, getGameByIdRequest, getPlayerDashboardRequest, getPlayerStatRequest, importExternalGameRequest, playerStatFavoriteRequest, playerStatUpdateCompletionRequest, searchResultsRequest, updatePlayerFieldRequest, updatePlayerPasswordRequest, updatePlayerStatRequest } from "./apiService";
 import { ApiRoutes } from "../util/ApiRoutes";
 import type { PlayerStatFields } from "../components/PlayerStatPopupGenerator";
 
@@ -77,6 +77,11 @@ type ApiContextValue = {
 		stat_id: number,
 	) => Promise<PlayerStat>
 
+	updatePlayerStatCompletion: (
+		stat_id: number,
+		status: string
+	) => Promise<PlayerStat>
+
 	getPlayerStat: (
 		player_id: number,
 		game_id: number, 
@@ -97,7 +102,7 @@ type ApiProviderProps = {
 
 export function ApiProvider({ children }: ApiProviderProps) {
 	const { toast } = useToast();
-	const { login, logout } = useAuth();
+	const { login, logout, refreshPlayerStats } = useAuth();
 
 	async function runApi<T>(
 		request: () => Promise<T>,
@@ -226,7 +231,8 @@ export function ApiProvider({ children }: ApiProviderProps) {
 		gameName: string
  	) : Promise<boolean> => await runApi( () => addPlayerStatRequest(game_id, statFields),
 		{
-			successMessage: `${gameName ?? 'Game'} added to profile.`
+			successMessage: `${gameName ?? 'Game'} added to profile.`,
+			onSuccess: () => refreshPlayerStats()
 		}
 	);	
 
@@ -242,7 +248,8 @@ export function ApiProvider({ children }: ApiProviderProps) {
 		gameName: string
  	) : Promise<boolean> => await runApi( () => updatePlayerStatRequest(stat_id, statFields),
 		{
-			successMessage: `${gameName ?? 'Game'} updated to profile.`
+			successMessage: `${gameName ?? 'Game'} updated to profile.`,
+			onSuccess: () => refreshPlayerStats()
 		}
 	);	
 
@@ -254,12 +261,18 @@ export function ApiProvider({ children }: ApiProviderProps) {
 		stat_id: number
  	) : Promise<PlayerStat> => await runApi( () => playerStatFavoriteRequest(stat_id, false));	
 
+	const updatePlayerStatCompletion = async (
+		stat_id: number,
+		status: string
+ 	) : Promise<PlayerStat> => await runApi( () => playerStatUpdateCompletionRequest(stat_id, status));	
+
 	const deletePlayerStat = async (
 		stat_id: number,
 		gameName: string
 	) : Promise<PlayerStat> => await runApi( () => deletePlayerStatRequest(stat_id),
 		{
-			successMessage: `${gameName ?? 'Game'} delete from profile.`
+			successMessage: `${gameName ?? 'Game'} delete from profile.`,
+			onSuccess: () => refreshPlayerStats()
 		}
 	);
 
@@ -278,7 +291,8 @@ export function ApiProvider({ children }: ApiProviderProps) {
 		likePlayerStat,
 		unlikePlayerStat,
 		getPlayerStat,
-		deletePlayerStat
+		deletePlayerStat,
+		updatePlayerStatCompletion
 	};
 
 	return (

@@ -1,9 +1,10 @@
 import { useAuth } from "../../context/useAuth";
 import { HighlighLabelTag } from "../HighlightLabelTag";
 import { DetailsType, ViewGameDetailsAsyncButton } from "../buttons/ViewGameDetailsButton";
-import type { Game, RowObject } from "../../util/Models";
+import type { Game, PlayerStat, RowObject } from "../../util/Models";
 import { PlayerStatEditButton } from "../buttons/PlayerStatEditButton";
 import { DeletePlayerStatButton } from "../buttons/DeletePlayerStatButton";
+import { CompletionStatusDropDown } from "../CompletionStatusDropDown";
 
 interface StatIdLabelProps {
     condition: boolean; 
@@ -24,7 +25,8 @@ export interface PlayerStatRow extends RowObject {
     is_favorite: boolean,
     rating: number,
     hours_played: number,
-    date_purchased: Date,
+    date_purchased: string,
+    completion_status: string,
     game_title: string,
     game_publishers: string[],
     game_developers: string[],
@@ -60,19 +62,42 @@ export function PlayerStatCardDetails( { playerStat, highlightUsername, highligh
         created_at: null
     }
 
+    const stat: PlayerStat = {
+        ...playerStat,
+        created_at: null
+    }
+
     return <div className="info-card-fields">
         <ViewGameDetailsAsyncButton gameId={playerStat.game_id} detailsType={DetailsType.Image} stat_id={playerStat.id} player_id={playerStat.player_id} is_favorite={playerStat.is_favorite} />
         <div><label>{`User: `}</label> <StatIdLabel className="" condition={highlightUsername} 
                 text={playerStat.username} highlightedText={highlightedText} /> </div>
         <div><StatIdLabel className="" condition={highlightGame} 
                 text={playerStat.game_title} highlightedText={highlightedText} /></div>
-        <div><label>{`Hours Played: ${playerStat.hours_played}`}</label></div>
+        <div><label>{`Hours Played: ${formatHours(playerStat.hours_played)}`}</label></div>
         <div><label>{ `Date Purchased: ${datePurchased}` }</label></div>
         <div><label>{`Rating (1-10): ${playerStat.rating ?? 'N/A'}`}</label></div>
+        <CompletionStatusDropDown stat={stat} />
         <div><label>{ `Game Release: ${gameRelease}` }</label></div>
         <ViewGameDetailsAsyncButton gameId={playerStat.game_id} detailsType={DetailsType.Button} successCallback={refreshData} />
         {isCurrentUser && <PlayerStatEditButton game={game} buttonLabel="Update Stat" successCallback={refreshData} />}
         {isCurrentUser && <DeletePlayerStatButton stat_id={playerStat.id} game_id={playerStat.game_id} game_name={playerStat.game_title} successCallback={refreshData}/>}
 
     </div>
+}
+
+function formatHours(hoursPlayed: number): string {
+    let hoursString: string = String(hoursPlayed);
+    let shift: number = 0;
+
+    const index: number = hoursString.indexOf('.');
+    if(index >= 0) {
+        shift = hoursString.length - index;
+    }
+
+    for(let x = hoursString.length - 3 - shift; x > 0; x-=3) {
+        hoursString = hoursString.substring(0, x) + ',' + hoursString.substring(x, hoursString.length);
+    }
+
+    return hoursString;
+
 }
