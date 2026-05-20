@@ -10,14 +10,12 @@ export function CompletionStatusDropDown( {stat} : CompletionProps) {
 
     const { user } = useAuth();
     const { updatePlayerStatCompletion } = useApi();
-    const isCurrentUser: boolean = user.id === stat.player_id;
-
-    const statusShown: string = capitlizeFirstLetter(stat.completion_status);
+    const isCurrentUser: boolean = user?.id === stat.player_id;
 
     if(isCurrentUser) {
         return <div><select onChange={(e) => {
             updatePlayerStatCompletion(stat.id, e.target.value);
-        }}>
+        }} defaultValue={stat.completion_status}>
             {
                 completionStatuses.map(status => {
                     const statusNorm: string = normalize(status);
@@ -31,6 +29,7 @@ export function CompletionStatusDropDown( {stat} : CompletionProps) {
         </select></div>;
     }
     
+    const statusShown: string = capitlizeFirstLetter(stat.completion_status);
     return <div><label>{`Completion Status: ${statusShown}`}</label></div>;
 }
 
