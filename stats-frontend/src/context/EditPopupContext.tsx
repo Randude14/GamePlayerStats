@@ -5,6 +5,7 @@ export const EditPopupContext = createContext(null);
 
 export interface EditPopupSettings {
     submitLabel: string,
+    submitButtonClassName?: string,
     elementBuilder: () => ReactElement
     clickCallback: () => boolean
 }
@@ -16,7 +17,7 @@ const BuildPopup = (settings: EditPopupSettings, closeHandler: () => void) => {
 
                 {settings.elementBuilder()}
                 {<div className="edit-popup-actions">
-                    <button onClick={() => {
+                    <button className={settings.submitButtonClassName ?? ''} onClick={() => {
                         if(settings.clickCallback()) {
                             closeHandler();
                         }

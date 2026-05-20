@@ -51,7 +51,7 @@ export function DeletePlayerStatButton( {stat_id, game_id, game_name, successCal
         showPopup(popupSettings);
     }
 
-    return <div><button className="delete-stat-button" onClick={onClickHandler}>Delete Game</button></div>;
+    return <div><button className="delete-button" onClick={onClickHandler}>Delete Game</button></div>;
 }
 
 function openDeleteStatPopup(gameName: string, deleteGame: () => Promise<boolean>): EditPopupSettings {
@@ -66,6 +66,7 @@ function openDeleteStatPopup(gameName: string, deleteGame: () => Promise<boolean
     return {
         elementBuilder: labelBuilder,
         submitLabel: 'Delete',
+        submitButtonClassName: 'delete-button',
         clickCallback
     }
 }
