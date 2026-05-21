@@ -13,7 +13,7 @@ export function CompletionStatusDropDown( {stat} : CompletionProps) {
     const isCurrentUser: boolean = user?.id === stat.player_id;
 
     if(isCurrentUser) {
-        return <div><select onChange={(e) => {
+        return <div>Status: <select onChange={(e) => {
             updatePlayerStatCompletion(stat.id, e.target.value);
         }} defaultValue={stat.completion_status}>
             {
